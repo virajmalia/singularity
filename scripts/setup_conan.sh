@@ -7,7 +7,7 @@ echo "Setting up Conan 2.x profiles for Singularity project..."
 # Check if Conan is installed
 if ! command -v conan &> /dev/null; then
     echo "Conan is not installed. Installing now..."
-    pip install "conan>=2.0.0"
+    pip install conan
 fi
 
 # Check Conan version
@@ -24,39 +24,43 @@ if [ "$MAJOR_VERSION" -lt "2" ]; then
 fi
 
 # Create default profile
-echo "Creating Conan default profile..."
+echo "Creating Conan default profile with clang..."
+# First detect the base profile
 conan profile detect --force
+
+# Now customize it to use clang
+PROFILE_PATH=$(conan profile path default)
+echo "Profile path: $PROFILE_PATH"
+
+if [ -f "$PROFILE_PATH" ]; then
+    echo "Configuring profile to use clang compiler with libc++..."
     
-    # For Conan 2.x, need to check if compiler is clang and update manually
-    # We'll create a temporary file to examine the profile content
-    PROFILE_PATH=$(conan profile path default)
-    echo "Profile path: $PROFILE_PATH"
+    # Update the compiler to clang
+    sed -i 's/compiler=gcc/compiler=clang/g' "$PROFILE_PATH"
     
-    if [ -f "$PROFILE_PATH" ]; then
-        # Check if compiler is gcc
-        if grep -q "compiler=gcc" "$PROFILE_PATH"; then
-            echo "GCC compiler detected, setting libstdc++11..."
-            # Use sed to update the libcxx setting
-            if grep -q "compiler.libcxx" "$PROFILE_PATH"; then
-                sed -i 's/compiler.libcxx=.*/compiler.libcxx=libstdc++11/g' "$PROFILE_PATH"
-            else
-                echo "compiler.libcxx=libstdc++11" >> "$PROFILE_PATH"
-            fi
-        # Check if compiler is clang
-        elif grep -q "compiler=clang" "$PROFILE_PATH" || grep -q "compiler=apple-clang" "$PROFILE_PATH"; then
-            echo "Clang compiler detected, setting libc++..."
-            # Use sed to update the libcxx setting
-            if grep -q "compiler.libcxx" "$PROFILE_PATH"; then
-                sed -i 's/compiler.libcxx=.*/compiler.libcxx=libc++/g' "$PROFILE_PATH"
-            else
-                echo "compiler.libcxx=libc++" >> "$PROFILE_PATH"
-            fi
-        else
-            echo "Unable to detect compiler type in profile."
-        fi
-        
-        echo "Updated profile content:"
-        cat "$PROFILE_PATH"
+    # Get the current version of clang
+    CLANG_VERSION=$(clang --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    MAJOR_MINOR=$(echo $CLANG_VERSION | cut -d. -f1-2)
+    
+    # Update compiler version
+    sed -i "s/compiler.version=.*/compiler.version=$MAJOR_MINOR/g" "$PROFILE_PATH"
+    
+    # Set libc++ as the C++ standard library
+    if grep -q "compiler.libcxx" "$PROFILE_PATH"; then
+        sed -i 's/compiler.libcxx=.*/compiler.libcxx=libc++/g' "$PROFILE_PATH"
+    else
+        echo "compiler.libcxx=libc++" >> "$PROFILE_PATH"
+    fi
+    
+    # Also create a specific clang profile for direct reference
+    echo "Creating dedicated clang profile..."
+    cp "$PROFILE_PATH" "$(dirname "$PROFILE_PATH")/clang"
+    echo "Clang profile created at: $(dirname "$PROFILE_PATH")/clang"
+    
+    # Set tools.build:compiler_executables in the profiles
+    echo "compiler.cxx=clang++" >> "$PROFILE_PATH"
+    echo "compiler.c=clang" >> "$PROFILE_PATH"
+    
     else
         echo "Warning: Could not find Conan profile at $PROFILE_PATH"
     fi

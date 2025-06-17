@@ -1,31 +1,46 @@
 FROM ubuntu:22.04 AS builder
 
-# Install build tools only (dependencies will come from Conan)
+# Install build tools and clang/LLVM toolchain
 RUN apt-get update && apt-get install -y \
-    build-essential \
     cmake \
     python3-pip \
     git \
     libssl-dev \
     pkg-config \
+    clang \
+    clang++ \
+    llvm \
+    lld \
+    libc++-dev \
+    libc++abi-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Set clang as the default compiler
+ENV CC=clang
+ENV CXX=clang++
 
 # Install conan
 RUN pip3 install conan
 
-# Setup conan
+# Setup conan with proper Conan 2.x syntax
 RUN conan profile detect --force && \
-    conan profile update conf.tools.system.package_manager:mode=install default && \
-    conan profile update conf.tools.system.package_manager:sudo=True default
+    mkdir -p /root/.conan2/profiles && \
+    PROFILE_PATH=$(conan profile path default) && \
+    echo 'tools.system.package_manager:mode=install' >> $PROFILE_PATH && \
+    echo 'tools.system.package_manager:sudo=True' >> $PROFILE_PATH
 
 # Copy source code
 WORKDIR /app
 COPY . .
 
-# Build with dynamic linking
+# Setup Conan with clang profile
+RUN bash ./scripts/setup_conan.sh
+
+# Build with dynamic linking using clang
 RUN mkdir build && cd build && \
     conan install .. --output-folder=. --build=missing && \
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake .. && \
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake \
+    -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ .. && \
     cmake --build . -j$(nproc)
 
 # Create runtime image
