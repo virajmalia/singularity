@@ -1,15 +1,15 @@
-FROM ubuntu:22.04 AS builder
+FROM ubuntu:25.04 AS builder
 
 # Install build tools and clang/LLVM toolchain
-RUN apt-get update && apt-get install -y libc++-18-dev cmake ninja-build \
+RUN apt-get update && apt-get install -y libc++-dev cmake ninja-build python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
 # Set clang as the default compiler
 ENV CC=clang
 ENV CXX=clang++
 
-# Install conan
-RUN pip3 install conan
+RUN python3 -m venv /opt/venv && . /opt/venv/bin/activate \
+    && pip install --upgrade pip && pip install conan
 
 # Setup conan with proper Conan 2.x syntax
 RUN conan profile detect --force && \
@@ -32,12 +32,19 @@ RUN mkdir build && cd build && \
     -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ .. && \
     cmake --build . -j$(nproc)
 
-# Create runtime image
-FROM ubuntu:22.04
+# Install application to a specific directory
+RUN cd build && cmake --install . --prefix=/app/install
 
-# Copy required runtime libraries from builder stage
-COPY --from=builder /app/build/bin/ /app/bin/
-COPY --from=builder /app/build/lib/ /app/lib/
+# Create runtime image
+FROM ubuntu:25.04
+
+# Install required runtime libraries
+RUN apt-get update && apt-get install -y libc++-dev && rm -rf /var/lib/apt/lists/*
+
+# Copy installed application from builder stage
+COPY --from=builder /app/install/bin/ /app/bin/
+COPY --from=builder /app/install/lib/ /app/lib/
+COPY --from=builder /app/install/include/ /app/include/
 
 # Set library path so that the executable can find the shared libraries
 ENV LD_LIBRARY_PATH=/app/lib
