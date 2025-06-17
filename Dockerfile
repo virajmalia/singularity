@@ -2,17 +2,12 @@ FROM ubuntu:22.04 AS builder
 
 # Install build tools and clang/LLVM toolchain
 RUN apt-get update && apt-get install -y \
+    clang-18 \
+    llvm-18 \
+    lld-18 \
+    libc++-18-dev \
     cmake \
-    python3-pip \
-    git \
-    libssl-dev \
-    pkg-config \
-    clang \
-    clang++ \
-    llvm \
-    lld \
-    libc++-dev \
-    libc++abi-dev \
+    ninja-build \
     && rm -rf /var/lib/apt/lists/*
 
 # Set clang as the default compiler
@@ -45,12 +40,6 @@ RUN mkdir build && cd build && \
 
 # Create runtime image
 FROM ubuntu:22.04
-
-# When using Conan with dynamic libraries, we need to copy the libraries
-# from the builder stage to the runtime image
-RUN apt-get update && apt-get install -y \
-    libssl3 \
-    && rm -rf /var/lib/apt/lists/*
 
 # Copy required runtime libraries from builder stage
 COPY --from=builder /app/build/bin/ /app/bin/
