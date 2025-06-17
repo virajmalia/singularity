@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.15)
 project(singularity VERSION 0.1.0 LANGUAGES CXX)
 
+# Set Ninja as preferred generator if available
+if(NOT CMAKE_GENERATOR)
+    find_program(NINJA ninja)
+    if(NINJA)
+        set(CMAKE_GENERATOR "Ninja" CACHE INTERNAL "")
+    endif()
+endif()
+
 # Use C++17 standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

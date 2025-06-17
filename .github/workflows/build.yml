@@ -9,15 +9,28 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: alpine:edge
     
     steps:
     - uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y clang clang++ llvm lld libc++-dev libc++abi-dev
-        pip install conan
+        # Update package lists and install necessary tools
+        apk update
+        apk add --no-cache \
+          clang20 \
+          cmake \
+          ninja \
+          python3 \
+          py3-pip \
+          bash \
+          git \
+          build-base
+        
+        # Install conan
+        pip3 install conan
     
     - name: Configure Conan and Build
       run: |
@@ -46,6 +59,8 @@ jobs:
   docker:
     needs: build
     runs-on: ubuntu-latest
+    container:
+      image: alpine:edge
     if: github.ref == 'refs/heads/main'
     
     steps:

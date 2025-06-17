@@ -32,6 +32,17 @@ if [ "$USE_CLANG" = true ]; then
     echo "Using clang/LLVM toolchain..."
     export CC=clang
     export CXX=clang++
+    # Print clang version for debugging
+    echo "Clang version: $(clang --version)"
+    
+    # Special handling for Alpine Linux with Clang 20
+    if [ -f "/etc/alpine-release" ]; then
+        echo "Detected Alpine Linux, ensuring proper library paths..."
+        # Add directory containing libc++.so to library path if needed
+        export LD_LIBRARY_PATH="/usr/lib:${LD_LIBRARY_PATH}"
+        # Ensure we use libc++ on Alpine
+        export CXXFLAGS="${CXXFLAGS} -stdlib=libc++"
+    fi
 else
     echo "Using default system compiler..."
 fi
@@ -56,16 +67,16 @@ conan install .. --output-folder=. --build=missing -c tools.system.package_manag
 # No need to generate custom provider with CMakeDeps and CMakeToolchain
 echo "Using Conan 2.x CMakeDeps and CMakeToolchain generators..."
 
-# Configure with CMake using Conan 2.x generated toolchain
+# Configure with CMake using Conan 2.x generated toolchain and Ninja generator
 if [ "$USE_CLANG" = true ]; then
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake \
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake \
           -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
 else
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake ..
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake ..
 fi
 
-# Build
-cmake --build . -- -j$(nproc)
+# Build with Ninja
+ninja
 
 # Run tests if requested
 if [ "$RUN_TESTS" = true ]; then
