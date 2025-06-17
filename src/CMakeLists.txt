@@ -27,3 +27,9 @@ target_link_libraries(singularity_lib
 add_executable(singularity main.cpp)
 target_link_libraries(singularity PRIVATE singularity_lib)
 target_include_directories(singularity PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+install(TARGETS singularity_lib
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
