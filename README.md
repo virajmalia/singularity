@@ -28,8 +28,14 @@ Alternatively, you can use the provided build script:
 # Run the build script (automatically handles Conan setup)
 ./scripts/build.sh
 
+# Run build script with clang compiler
+./scripts/build.sh --clang
+
 # Run build script and execute tests
 ./scripts/build.sh --test
+
+# Run build script with clang compiler and execute tests
+./scripts/build.sh --clang --test
 ```
 
 ## Troubleshooting
@@ -70,6 +76,19 @@ singularity --path /path/to/local/repo
 # Get help
 singularity --help
 ```
+
+### Compiler Support
+
+This project supports both GCC and Clang/LLVM toolchains. By default, it uses the system's default compiler, but you can explicitly use Clang:
+
+```bash
+# Build with Clang/LLVM
+./scripts/build.sh --clang
+```
+
+For convenience, there's also a wrapper script `build_with_clang.sh` that does the same thing.
+
+When using Docker, the build automatically uses Clang as configured in the Dockerfile.
 
 ## License
 

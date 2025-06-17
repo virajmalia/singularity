@@ -1,47 +1,9 @@
 #!/bin/bash
 
-set -e
+# This is a simple wrapper script that calls the main build.sh with the --clang option
+# for convenience and backward compatibility
 
-# Script to build the project with clang/LLVM toolchain
-echo "Setting up build with clang/LLVM toolchain..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Make sure clang is installed
-if ! command -v clang &> /dev/null; then
-    echo "Error: clang is not installed. Please install it first."
-    exit 1
-fi
-
-# Export environment variables to use clang
-export CC=clang
-export CXX=clang++
-
-# Create and go to the build directory
-mkdir -p build
-cd build
-
-# Setup Conan with clang
-../scripts/setup_conan.sh
-
-# Install dependencies with Conan
-echo "Installing dependencies with Conan..."
-conan install .. --output-folder=. --build=missing
-
-# Configure with CMake
-echo "Configuring with CMake..."
-cmake -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake \
-      -DCMAKE_C_COMPILER=clang \
-      -DCMAKE_CXX_COMPILER=clang++ \
-      ..
-
-# Build
-echo "Building..."
-cmake --build . -j$(nproc)
-
-# Run tests if requested
-if [ "$1" == "--test" ]; then
-    echo "Running tests..."
-    ctest --output-on-failure
-fi
-
-echo "Build completed successfully!"
+# Forward all arguments to build.sh with --clang added
+"${SCRIPT_DIR}/build.sh" --clang "$@"

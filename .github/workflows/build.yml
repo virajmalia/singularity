@@ -16,6 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
+        sudo apt-get install -y clang clang++ llvm lld libc++-dev libc++abi-dev
         pip install conan
     
     - name: Configure Conan and Build
@@ -23,11 +24,8 @@ jobs:
         # Make scripts executable
         chmod +x ./scripts/*.sh
         
-        # Setup Conan profiles
-        ./scripts/setup_conan.sh
-        
-        # Build using the build script
-        ./scripts/build.sh
+        # Build using the main build script with clang option
+        ./scripts/build.sh --clang
     
     - name: Run tests
       run: |
