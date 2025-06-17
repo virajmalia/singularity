@@ -28,19 +28,20 @@ mkdir build && cd build
 ```
 
 ### Install dependencies with Conan
+
 ```
 conan install .. --output-folder=. --build=missing
 ```
 
-### Configure with CMake using Conan toolchain
+### Configure with CMake using Conan toolchain and Ninja
 ```
-cmake -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake ..
+cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake ..
 ```
 
-### Build
+### Build with Ninja
 
 ```sh
-cmake --build .
+ninja
 ```
 
 ## Troubleshooting

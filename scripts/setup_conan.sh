@@ -6,13 +6,9 @@ echo "Setting up Conan 2.x profiles for Singularity project..."
 
 # Check if Conan is installed
 if ! command -v conan &> /dev/null; then
-    echo "Conan is not installed. Installing now..."
-    # Check if we're on Alpine (use pip3 instead of pip)
-    if [ -f "/etc/alpine-release" ]; then
-        pip3 install conan
-    else
-        pip install conan
-    fi
+    echo "Error: Conan is not installed. Please install Conan before running this script."
+    echo "In a virtual environment, you can install it with: pip install conan"
+    exit 1
 fi
 
 # Check Conan version
