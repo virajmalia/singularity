@@ -29,7 +29,19 @@ mkdir build && cd build
 
 ### Install dependencies with Conan
 
-```
+It's recommended to install Conan in a Python virtual environment:
+
+```bash
+# Create a virtual environment
+python3 -m venv /path/to/venv
+
+# Activate the virtual environment
+source /path/to/venv/bin/activate
+
+# Install Conan in the virtual environment
+pip install "conan>=2.0.0"
+
+# Now you can use Conan
 conan install .. --output-folder=. --build=missing
 ```
 
@@ -67,7 +79,6 @@ pip install --upgrade "conan>=2.0.0"
 This project uses the Ninja build system for faster build times and better incremental builds. Make sure to install Ninja on your system:
 
 - On Ubuntu/Debian: `apt-get install ninja-build`
-- On Alpine: `apk add ninja`
 - On macOS: `brew install ninja`
 - On Windows: `choco install ninja` or download from the [official GitHub release](https://github.com/ninja-build/ninja/releases)
 

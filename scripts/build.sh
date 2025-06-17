@@ -35,23 +35,9 @@ if [ "$USE_CLANG" = true ]; then
     # Print clang version for debugging
     echo "Clang version: $(clang --version)"
     
-    # Special handling for Alpine Linux with Clang 20
-    if [ -f "/etc/alpine-release" ]; then
-        echo "Detected Alpine Linux, ensuring proper library paths..."
-        # Add directory containing libc++.so to library path if needed
-        export LD_LIBRARY_PATH="/usr/lib:/usr/lib/llvm20/lib:${LD_LIBRARY_PATH}"
-        
-        # Check if libc++ is available
-        if [ -f "/usr/lib/libc++.so" ] || [ -f "/usr/lib/llvm20/lib/libc++.so" ]; then
-            echo "Using libc++ standard library"
-            export CXXFLAGS="${CXXFLAGS} -stdlib=libc++"
-            export LDFLAGS="${LDFLAGS} -stdlib=libc++ -L/usr/lib -L/usr/lib/llvm20/lib"
-        else
-            echo "libc++ library not found, using libstdc++ instead"
-            # Use libstdc++ as fallback
-            export CXXFLAGS="${CXXFLAGS} -stdlib=libstdc++"
-        fi
-    fi
+    # Configure to use libc++ on Ubuntu
+    export CXXFLAGS="${CXXFLAGS} -stdlib=libc++"
+    export LDFLAGS="${LDFLAGS} -stdlib=libc++"
 else
     echo "Using default system compiler..."
 fi
@@ -78,20 +64,13 @@ echo "Using Conan 2.x CMakeDeps and CMakeToolchain generators..."
 
 # Configure with CMake using Conan 2.x generated toolchain and Ninja generator
 if [ "$USE_CLANG" = true ]; then
-    # For Alpine Linux with Clang, we need to pass additional compiler flags
-    if [ -f "/etc/alpine-release" ]; then
-        # Pass environment variables to ensure consistent compiler flags
-        cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake \
-              -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
-              -DCMAKE_CXX_FLAGS="${CXXFLAGS}" \
-              -DCMAKE_EXE_LINKER_FLAGS="${LDFLAGS}" \
-              -DCMAKE_SHARED_LINKER_FLAGS="${LDFLAGS}" \
-              -DCMAKE_MODULE_LINKER_FLAGS="${LDFLAGS}" ..
-    else
-        # Standard setup for non-Alpine systems
-        cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake \
-              -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
-    fi
+    # Pass environment variables to ensure consistent compiler flags
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake \
+          -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+          -DCMAKE_CXX_FLAGS="${CXXFLAGS}" \
+          -DCMAKE_EXE_LINKER_FLAGS="${LDFLAGS}" \
+          -DCMAKE_SHARED_LINKER_FLAGS="${LDFLAGS}" \
+          -DCMAKE_MODULE_LINKER_FLAGS="${LDFLAGS}" ..
 else
     cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake ..
 fi

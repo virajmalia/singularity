@@ -43,8 +43,7 @@ if [ -f "$PROFILE_PATH" ]; then
     # Update the compiler to clang
     sed -i 's/compiler=gcc/compiler=clang/g' "$PROFILE_PATH"
     
-    # Get the current version of clang - we'll extract just the major version since
-    # Conan only accepts major version numbers for clang (not minor versions)
+    # Get the current version of clang
     if CLANG_FULL_VERSION=$(clang --version | grep -oE 'version [0-9]+\.[0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1); then
         echo "Detected clang full version: $CLANG_FULL_VERSION"
     else
@@ -57,11 +56,6 @@ if [ -f "$PROFILE_PATH" ]; then
             else
                 # Try to extract just the major version
                 MAJOR_VERSION=$(clang --version | grep -oE 'clang version [0-9]+' | grep -oE '[0-9]+' | head -1)
-                if [ -z "$MAJOR_VERSION" ] && [ -f "/etc/alpine-release" ]; then
-                    # Special case for Alpine's clang package
-                    MAJOR_VERSION="20"
-                    echo "Alpine Linux detected, assuming Clang major version: $MAJOR_VERSION"
-                fi
                 CLANG_FULL_VERSION="$MAJOR_VERSION.0.0"  # Just for logging
             fi
         fi
@@ -74,46 +68,18 @@ if [ -f "$PROFILE_PATH" ]; then
     # Update compiler version - use only the major version
     sed -i "s/compiler.version=.*/compiler.version=$CLANG_MAJOR_VERSION/g" "$PROFILE_PATH"
     
-    # Set the C++ standard library based on availability
-    if [ -f "/etc/alpine-release" ]; then
-        if [ -f "/usr/lib/libc++.so" ] || [ -f "/usr/lib/llvm20/lib/libc++.so" ]; then
-            # Use libc++ if available
-            echo "libc++ library found, configuring for libc++"
-            if grep -q "compiler.libcxx" "$PROFILE_PATH"; then
-                sed -i 's/compiler.libcxx=.*/compiler.libcxx=libc++/g' "$PROFILE_PATH"
-            else
-                echo "compiler.libcxx=libc++" >> "$PROFILE_PATH"
-            fi
-        else
-            # Fallback to libstdc++11 if libc++ is not available
-            echo "libc++ library not found, configuring for libstdc++11"
-            if grep -q "compiler.libcxx" "$PROFILE_PATH"; then
-                sed -i 's/compiler.libcxx=.*/compiler.libcxx=libstdc++11/g' "$PROFILE_PATH"
-            else
-                echo "compiler.libcxx=libstdc++11" >> "$PROFILE_PATH"
-            fi
-        fi
+    # Set libc++ as the C++ standard library
+    if grep -q "compiler.libcxx" "$PROFILE_PATH"; then
+        sed -i 's/compiler.libcxx=.*/compiler.libcxx=libc++/g' "$PROFILE_PATH"
     else
-        # Default for non-Alpine systems
-        if grep -q "compiler.libcxx" "$PROFILE_PATH"; then
-            sed -i 's/compiler.libcxx=.*/compiler.libcxx=libc++/g' "$PROFILE_PATH"
-        else
-            echo "compiler.libcxx=libc++" >> "$PROFILE_PATH"
-        fi
+        echo "compiler.libcxx=libc++" >> "$PROFILE_PATH"
     fi
     
-    # Special handling for Alpine Linux
-    if [ -f "/etc/alpine-release" ]; then
-        echo "Detected Alpine Linux, adding additional settings..."
-        # Ensure appropriate paths and flags are set for Alpine
-        if ! grep -q "tools.system.package_manager:mode" "$PROFILE_PATH"; then
-            echo "tools.system.package_manager:mode=install" >> "$PROFILE_PATH"
-        fi
-        
-        # Specify C++ ABI to match libc++
-        if ! grep -q "compiler.cppstd" "$PROFILE_PATH"; then
-            echo "compiler.cppstd=17" >> "$PROFILE_PATH"
-        fi
+    # Set C++17 as the C++ standard
+    if grep -q "compiler.cppstd" "$PROFILE_PATH"; then
+        sed -i 's/compiler.cppstd=.*/compiler.cppstd=17/g' "$PROFILE_PATH"
+    else
+        echo "compiler.cppstd=17" >> "$PROFILE_PATH"
     fi
     
     echo "Conan profile configured successfully!"
