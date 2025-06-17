@@ -1,48 +1,24 @@
 # Singularity
 
 # Create build directory
+
+```sh
 mkdir build && cd build
+```
 
 # Install dependencies with Conan 2.x
+```
 conan install .. --output-folder=. --build=missing
+```
 
 # Configure with CMake using Conan 2.x toolchain
+```
 cmake -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake ..
+```
 
 # Build
-cmake --build .
-```tps://github.com/username/singularity/actions/workflows/build.yml/badge.svg)](https://github.com/username/singularity/actions/workflows/build.yml)
 
-A simple C++ command-line tool that identifies programming languages used in Git repositories. Singularity scans repository files and provides a clean list of languages detected.
-
-## Features
-
-- Analyze local or remote Git repositories
-- Identify languages based on file extensions and patterns
-- Print a simple list of detected languages
-- Support for both GitHub API analysis and direct repository scanning
-- Docker support for containerized execution
-
-## Requirements
-
-- C++17 compatible compiler (Clang recommended)
-- CMake 3.15+
-- Conan 2.x package manager
-- Git
-
-## Building
-
-```bash
-# Create build directory
-mkdir build && cd build
-
-# Install dependencies with Conan 2.x
-conan install .. --output-folder=. --build=missing
-
-# Configure with CMake
-cmake ..
-
-# Build
+```sh
 cmake --build .
 ```
 
@@ -97,4 +73,14 @@ singularity --help
 
 ## License
 
-MIT
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this software except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

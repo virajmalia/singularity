@@ -14,9 +14,10 @@ class SingularityConan(ConanFile):
         self.requires("gtest/1.12.1")
     
     def configure(self):
-        # Set options for dependencies
-        self.options["libcurl"].shared = False
-        self.options["libgit2"].shared = False
+        # Use dynamic libraries
+        self.options["libcurl"].shared = True
+        self.options["libcurl"].with_ssl = "openssl"  # Ensure OpenSSL is used
+        self.options["libgit2"].shared = True
     
     def generate(self):
         # Generate CMake toolchain with preprocessor definitions
