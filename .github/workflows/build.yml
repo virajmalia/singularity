@@ -17,17 +17,7 @@ jobs:
       run: |
         # Update package lists and install necessary tools
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends \
-          clang-18 \
-          llvm-18 \
-          lld-18 \
-          libc++-18-dev \
-          cmake \
-          ninja-build
-        
-        # Set clang-18 as the default clang
-        sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
-        sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
+        sudo apt-get install -y libc++-18-dev cmake ninja-build
         
         # Create and activate Python virtual environment
         python3 -m venv /opt/venv

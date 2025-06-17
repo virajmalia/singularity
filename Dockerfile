@@ -1,13 +1,7 @@
 FROM ubuntu:22.04 AS builder
 
 # Install build tools and clang/LLVM toolchain
-RUN apt-get update && apt-get install -y \
-    clang-18 \
-    llvm-18 \
-    lld-18 \
-    libc++-18-dev \
-    cmake \
-    ninja-build \
+RUN apt-get update && apt-get install -y libc++-18-dev cmake ninja-build \
     && rm -rf /var/lib/apt/lists/*
 
 # Set clang as the default compiler
