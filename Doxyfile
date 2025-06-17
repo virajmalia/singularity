@@ -1,0 +1,45 @@
+# Doxyfile for the Singularity project
+
+# Project information
+PROJECT_NAME           = "Singularity"
+PROJECT_NUMBER         = 0.1.0
+PROJECT_BRIEF          = "A tool to analyze programming languages in Git repositories"
+OUTPUT_DIRECTORY       = doc
+CREATE_SUBDIRS         = YES
+
+# Input options
+INPUT                  = src include README.md
+FILE_PATTERNS          = *.c *.cpp *.hpp *.h *.md
+RECURSIVE              = YES
+USE_MDFILE_AS_MAINPAGE = README.md
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+
+# Output options
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+HTML_OUTPUT            = html
+SEARCHENGINE           = YES
+
+# Diagram options
+HAVE_DOT               = YES
+DOT_IMAGE_FORMAT       = svg
+INTERACTIVE_SVG        = YES
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+UML_LOOK               = YES
+UML_LIMIT_NUM_FIELDS   = 50
+
+# Other options
+BUILTIN_STL_SUPPORT    = YES
+CASE_SENSE_NAMES       = YES
+SORT_BRIEF_DOCS        = YES
+SORT_MEMBERS_CTORS_1ST = YES
+SOURCE_BROWSER         = YES
+STRIP_CODE_COMMENTS    = NO
+JAVADOC_AUTOBRIEF      = YES
+QT_AUTOBRIEF           = YES
+WARN_NO_PARAMDOC       = YES
+WARN_IF_UNDOCUMENTED   = YES
