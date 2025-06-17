@@ -74,11 +74,32 @@ if [ -f "$PROFILE_PATH" ]; then
     # Update compiler version - use only the major version
     sed -i "s/compiler.version=.*/compiler.version=$CLANG_MAJOR_VERSION/g" "$PROFILE_PATH"
     
-    # Set libc++ as the C++ standard library
-    if grep -q "compiler.libcxx" "$PROFILE_PATH"; then
-        sed -i 's/compiler.libcxx=.*/compiler.libcxx=libc++/g' "$PROFILE_PATH"
+    # Set the C++ standard library based on availability
+    if [ -f "/etc/alpine-release" ]; then
+        if [ -f "/usr/lib/libc++.so" ] || [ -f "/usr/lib/llvm20/lib/libc++.so" ]; then
+            # Use libc++ if available
+            echo "libc++ library found, configuring for libc++"
+            if grep -q "compiler.libcxx" "$PROFILE_PATH"; then
+                sed -i 's/compiler.libcxx=.*/compiler.libcxx=libc++/g' "$PROFILE_PATH"
+            else
+                echo "compiler.libcxx=libc++" >> "$PROFILE_PATH"
+            fi
+        else
+            # Fallback to libstdc++11 if libc++ is not available
+            echo "libc++ library not found, configuring for libstdc++11"
+            if grep -q "compiler.libcxx" "$PROFILE_PATH"; then
+                sed -i 's/compiler.libcxx=.*/compiler.libcxx=libstdc++11/g' "$PROFILE_PATH"
+            else
+                echo "compiler.libcxx=libstdc++11" >> "$PROFILE_PATH"
+            fi
+        fi
     else
-        echo "compiler.libcxx=libc++" >> "$PROFILE_PATH"
+        # Default for non-Alpine systems
+        if grep -q "compiler.libcxx" "$PROFILE_PATH"; then
+            sed -i 's/compiler.libcxx=.*/compiler.libcxx=libc++/g' "$PROFILE_PATH"
+        else
+            echo "compiler.libcxx=libc++" >> "$PROFILE_PATH"
+        fi
     fi
     
     # Special handling for Alpine Linux

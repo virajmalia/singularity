@@ -31,7 +31,13 @@ jobs:
           python3-dev \
           bash \
           git \
-          build-base
+          build-base \
+          libstdc++ \
+          libstdc++-dev \
+          libc++-dev \
+          libc++abi-dev \
+          libc++ \
+          libc++abi
         
         # Create and activate Python virtual environment
         python3 -m venv /opt/venv
@@ -48,6 +54,17 @@ jobs:
         
         # Make scripts executable
         chmod +x ./scripts/*.sh
+        
+        # Print diagnostic information
+        echo "=== System Information ==="
+        uname -a
+        echo "=== Clang Information ==="
+        clang --version
+        echo "=== Library Paths ==="
+        ls -la /usr/lib | grep 'libc++\|libstdc++'
+        ls -la /usr/lib/llvm* 2>/dev/null || echo "No llvm lib directory"
+        echo "=== Compiler Search Paths ==="
+        clang -print-search-dirs
         
         # Build using the main build script with clang option
         ./scripts/build.sh --clang
