@@ -12,13 +12,17 @@ if ! command -v conan &> /dev/null; then
 fi
 
 # Check Conan version
-CONAN_VERSION=$(conan --version | grep -o '[0-9]\+\.[0-9]\+\.[0-9]+' | head -1)
+CONAN_VERSION=$(conan --version | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' | head -1)
+if [ -z "$CONAN_VERSION" ]; then
+    # Try a different pattern if the above fails
+    CONAN_VERSION=$(conan --version | grep -oE '[0-9]+\.[0-9]+' | head -1)
+fi
 MAJOR_VERSION=$(echo $CONAN_VERSION | cut -d. -f1)
 
 echo "Detected Conan version: $CONAN_VERSION"
 
 # Ensure we're using Conan 2.x
-if [ "$MAJOR_VERSION" -lt "2" ]; then
+if [ -z "$MAJOR_VERSION" ] || [ "$MAJOR_VERSION" -lt "2" ]; then
     echo "Error: This project requires Conan 2.x. Please upgrade your Conan installation:"
     echo "pip install --upgrade \"conan>=2.0.0\""
     exit 1
@@ -39,31 +43,36 @@ if [ -f "$PROFILE_PATH" ]; then
     # Update the compiler to clang
     sed -i 's/compiler=gcc/compiler=clang/g' "$PROFILE_PATH"
     
-    # Get the current version of clang
-    if CLANG_VERSION=$(clang --version | grep -oE 'version [0-9]+\.[0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1); then
-        echo "Detected clang version: $CLANG_VERSION"
+    # Get the current version of clang - we'll extract just the major version since
+    # Conan only accepts major version numbers for clang (not minor versions)
+    if CLANG_FULL_VERSION=$(clang --version | grep -oE 'version [0-9]+\.[0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1); then
+        echo "Detected clang full version: $CLANG_FULL_VERSION"
     else
         # Fallback for different version output formats
-        CLANG_VERSION=$(clang --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-        # If still empty, try to extract just the major version
-        if [ -z "$CLANG_VERSION" ]; then
-            CLANG_VERSION=$(clang --version | grep -oE 'clang version [0-9]+' | grep -oE '[0-9]+' | head -1)
-            if [ -z "$CLANG_VERSION" ] && [ -f "/etc/alpine-release" ]; then
-                # Special case for Alpine's clang-20 package
-                CLANG_VERSION="20.0.0"
-                echo "Alpine Linux detected, assuming Clang version: $CLANG_VERSION"
+        CLANG_FULL_VERSION=$(clang --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        # If still empty, try more formats
+        if [ -z "$CLANG_FULL_VERSION" ]; then
+            if CLANG_FULL_VERSION=$(clang --version | grep -oE '[0-9]+\.[0-9]+' | head -1); then
+                echo "Detected clang version with major.minor format: $CLANG_FULL_VERSION"
             else
-                CLANG_VERSION="$CLANG_VERSION.0.0"  # Add minor and patch versions
+                # Try to extract just the major version
+                MAJOR_VERSION=$(clang --version | grep -oE 'clang version [0-9]+' | grep -oE '[0-9]+' | head -1)
+                if [ -z "$MAJOR_VERSION" ] && [ -f "/etc/alpine-release" ]; then
+                    # Special case for Alpine's clang package
+                    MAJOR_VERSION="20"
+                    echo "Alpine Linux detected, assuming Clang major version: $MAJOR_VERSION"
+                fi
+                CLANG_FULL_VERSION="$MAJOR_VERSION.0.0"  # Just for logging
             fi
-            echo "Using simplified clang version: $CLANG_VERSION"
         fi
     fi
     
-    MAJOR_MINOR=$(echo $CLANG_VERSION | cut -d. -f1-2)
-    echo "Using clang version: $MAJOR_MINOR"
+    # Extract just the major version number (first number before the dot)
+    CLANG_MAJOR_VERSION=$(echo $CLANG_FULL_VERSION | cut -d. -f1)
+    echo "Using clang major version for Conan: $CLANG_MAJOR_VERSION"
     
-    # Update compiler version
-    sed -i "s/compiler.version=.*/compiler.version=$MAJOR_MINOR/g" "$PROFILE_PATH"
+    # Update compiler version - use only the major version
+    sed -i "s/compiler.version=.*/compiler.version=$CLANG_MAJOR_VERSION/g" "$PROFILE_PATH"
     
     # Set libc++ as the C++ standard library
     if grep -q "compiler.libcxx" "$PROFILE_PATH"; then
