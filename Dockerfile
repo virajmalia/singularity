@@ -1,11 +1,13 @@
 FROM ubuntu:25.04 AS builder
 
 # Install build tools and clang/LLVM toolchain
-RUN apt-get update && apt-get install -y libc++-dev cmake ninja-build python3-pip
+RUN apt-get update && apt-get install -y clang++ llvm lld libc++-dev cmake ninja-build python3-pip
 
 # Set clang as the default compiler
 ENV CC=clang
 ENV CXX=clang++
+ENV PATH="/usr/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/usr/lib:${LD_LIBRARY_PATH}"
 
 # Install Conan package manager
 RUN pip install --no-cache-dir --break-system-packages conan && \
