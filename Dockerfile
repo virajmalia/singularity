@@ -1,14 +1,17 @@
 FROM ubuntu:25.04 AS builder
 
 # Install build tools and clang/LLVM toolchain
-RUN apt-get update && apt-get install -y libc++-dev cmake ninja-build python3-venv
+RUN apt-get update && apt-get install -y libc++-dev cmake ninja-build python3
 
 # Set clang as the default compiler
 ENV CC=clang
 ENV CXX=clang++
 
-RUN python3 -m venv /opt/venv && . /opt/venv/bin/activate && \
-    pip install --upgrade pip && pip install conan
+# Install Conan package manager
+RUN pip install --upgrade --break-system-packages pip && \
+    pip install --no-cache-dir --break-system-packages conan && \
+    which conan && conan --version
+ENV PATH="/usr/local/bin:${PATH}"
 
 # Copy source code
 WORKDIR /app
@@ -20,8 +23,7 @@ RUN bash ./scripts/setup_conan.sh
 # Build with dynamic linking using clang
 RUN mkdir build && cd build && \
     conan install .. --output-folder=. --build=missing && \
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake \
-    -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ .. && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake && \
     cmake --build . -j$(nproc)
 
 # Install application to a specific directory
