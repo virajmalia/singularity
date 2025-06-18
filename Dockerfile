@@ -1,7 +1,7 @@
 FROM ubuntu:24.04 AS builder
 
 # Install build tools and clang/LLVM toolchain
-RUN apt-get update && apt-get install -y clang-18 cmake ninja-build python3-pip && \
+RUN apt-get update && apt-get install -y clang cmake ninja-build python3-pip && \
     which clang && clang --version
 
 # Set clang as the default compiler
