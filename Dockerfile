@@ -31,20 +31,10 @@ RUN mkdir build && cd build && \
 # Install application to a specific directory
 RUN cd build && cmake --install . --prefix=/app/install
 
-# Create runtime image
-FROM ubuntu:24.04
-
-# Install required runtime libraries
-RUN apt-get update && apt-get install -y libc++-dev && rm -rf /var/lib/apt/lists/*
-
-# Copy installed application from builder stage
-COPY --from=builder /app/install/bin/ /app/bin/
-COPY --from=builder /app/install/lib/ /app/lib/
-
 # Set library path so that the executable can find the shared libraries
-ENV LD_LIBRARY_PATH=/app/lib:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=/app/install/lib:${LD_LIBRARY_PATH}
 
 WORKDIR /app
 
 # Set entrypoint to use the executable from the copied directory
-ENTRYPOINT ["/run/media/virajm/MySpace/code-repos/singularity/build/conanrunenv-release-x86_64.sh && /app/bin/singularity"]
+ENTRYPOINT [". /app/build/conanrunenv-release-x86_64.sh && /app/bin/singularity"]
