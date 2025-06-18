@@ -35,7 +35,5 @@ RUN cd build && cmake --install . --prefix=/app/install
 # Set library path so that the executable can find the shared libraries
 ENV LD_LIBRARY_PATH=/app/install/lib:${LD_LIBRARY_PATH}
 
-WORKDIR /app
-
 # Set entrypoint to use the executable from the copied directory
-ENTRYPOINT [". /app/build/conanrunenv-release-x86_64.sh && /app/bin/singularity"]
+ENTRYPOINT [". /app/build/conanrunenv-release-x86_64.sh && /app/install/bin/singularity"]
