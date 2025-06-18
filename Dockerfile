@@ -8,8 +8,7 @@ ENV CC=clang
 ENV CXX=clang++
 
 # Install Conan package manager
-RUN pip install --upgrade --break-system-packages pip && \
-    pip install --no-cache-dir --break-system-packages conan && \
+RUN pip install --no-cache-dir --break-system-packages conan && \
     which conan && conan --version
 ENV PATH="/usr/local/bin:${PATH}"
 
