@@ -1,29 +1,23 @@
 FROM ubuntu:25.04 AS builder
 
 # Install build tools and clang/LLVM toolchain
-RUN apt-get update && apt-get install -y libc++-dev cmake ninja-build python3-venv \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y libc++-dev cmake ninja-build python3-venv
 
 # Set clang as the default compiler
 ENV CC=clang
 ENV CXX=clang++
 
-RUN python3 -m venv /opt/venv && . /opt/venv/bin/activate \
-    && pip install --upgrade pip && pip install conan
-
-# Setup conan with proper Conan 2.x syntax
-RUN conan profile detect --force && \
-    mkdir -p /root/.conan2/profiles && \
-    PROFILE_PATH=$(conan profile path default) && \
-    echo 'tools.system.package_manager:mode=install' >> $PROFILE_PATH && \
-    echo 'tools.system.package_manager:sudo=True' >> $PROFILE_PATH
+RUN python3 -m venv /opt/venv && . /opt/venv/bin/activate && \
+    pip install --upgrade pip && pip install conan
 
 # Copy source code
 WORKDIR /app
 COPY . .
 
 # Setup Conan with clang profile
-RUN bash ./scripts/setup_conan.sh
+RUN echo 'tools.system.package_manager:mode=install' >> $PROFILE_PATH && \
+    echo 'tools.system.package_manager:sudo=True' >> $PROFILE_PATH && \
+    bash ./scripts/setup_conan.sh
 
 # Build with dynamic linking using clang
 RUN mkdir build && cd build && \
