@@ -15,9 +15,7 @@ WORKDIR /app
 COPY . .
 
 # Setup Conan with clang profile
-RUN echo 'tools.system.package_manager:mode=install' >> $PROFILE_PATH && \
-    echo 'tools.system.package_manager:sudo=True' >> $PROFILE_PATH && \
-    bash ./scripts/setup_conan.sh
+RUN bash ./scripts/setup_conan.sh
 
 # Build with dynamic linking using clang
 RUN mkdir build && cd build && \
