@@ -25,7 +25,7 @@ cmake_install.cmake
 Makefile
 CTestTestfile.cmake
 compile_commands.json
-CMakeUserPresets.json
+CMake*Presets.json
 
 # Conan files
 conanbuildinfo.*

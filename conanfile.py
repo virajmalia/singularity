@@ -6,12 +6,11 @@ class SingularityConan(ConanFile):
     version = "0.1.0"
     
     settings = "os", "compiler", "build_type", "arch"
-    # No generators here, we use the generate() method instead
     
     def requirements(self):
-        self.requires("libcurl/7.86.0")
-        self.requires("libgit2/1.5.0")
-        self.requires("gtest/1.12.1")
+        self.requires("libcurl/8.12.1")
+        self.requires("libgit2/1.8.4")
+        self.requires("gtest/1.16.0")
     
     def configure(self):
         # Use dynamic libraries
@@ -23,6 +22,7 @@ class SingularityConan(ConanFile):
         # Generate CMake toolchain with preprocessor definitions
         tc = CMakeToolchain(self)
         tc.variables["CMAKE_CXX_STANDARD"] = "17"
+        tc.variables["BUILD_SHARED_LIBS"] = True  # Build shared libraries
         tc.generate()
         
         # Generate CMake dependency files

@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.15)
 project(singularity VERSION 0.1.0 LANGUAGES CXX)
 
+# Set Ninja as preferred generator if available
+if(NOT CMAKE_GENERATOR)
+    find_program(NINJA ninja)
+    if(NINJA)
+        set(CMAKE_GENERATOR "Ninja" CACHE INTERNAL "")
+    endif()
+endif()
+
 # Use C++17 standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -53,12 +61,11 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A tool to analyze programming languages u
 set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+set(CPACK_PACKAGE_LICENSE "Apache-2.0")
+
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
-# Add NOTICE file to package
 set(CPACK_RESOURCE_FILE_WELCOME "${CMAKE_CURRENT_SOURCE_DIR}/NOTICE")
-# Set license type to Apache 2.0
-set(CPACK_PACKAGE_LICENSE "Apache-2.0")
 include(CPack)
 
 # clang-format setup

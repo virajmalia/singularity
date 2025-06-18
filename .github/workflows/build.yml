@@ -7,52 +7,81 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Install dependencies
       run: |
+        # Update package lists and install necessary tools
         sudo apt-get update
-        sudo apt-get install -y clang clang++ llvm lld libc++-dev libc++abi-dev
+        sudo apt-get install -y clang llvm lld libc++-dev cmake ninja-build
+
+        # Check installed versions
+        clang --version
+        cmake --version
+        ninja --version
+
+        # Create and activate Python virtual environment
+        python3 -m venv /opt/venv
+        source /opt/venv/bin/activate
+
+        # Install conan in the virtual environment
+        pip install --upgrade pip
         pip install conan
-    
+
     - name: Configure Conan and Build
       run: |
+        # Activate Python virtual environment
+        source /opt/venv/bin/activate
+
         # Make scripts executable
         chmod +x ./scripts/*.sh
-        
+
         # Build using the main build script with clang option
         ./scripts/build.sh --clang
-    
+
     - name: Run tests
       run: |
+        # Activate Python virtual environment
+        source /opt/venv/bin/activate
+
         cd build
         ctest --output-on-failure
-    
+
     - name: Package
       run: |
+        # Activate Python virtual environment
+        source /opt/venv/bin/activate
+
         cd build
         cpack -G TGZ
-    
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: singularity-package
         path: build/*.tar.gz
 
-  docker:
-    needs: build
+  docker-ci:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Build Docker image
-      run: docker build -t singularity:latest .
-    
+      run: |
+        echo "Building Docker image..."
+        docker build -t singularity:latest .
+
     - name: Test Docker image
-      run: docker run --rm singularity:latest --version
+      run: |
+        echo "Testing Docker image with --version..."
+        docker run --rm singularity:latest --version
+
+    - name: Inspect Docker image layers
+      run: |
+        echo "Inspecting Docker image layers..."
+        docker history singularity:latest

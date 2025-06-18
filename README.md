@@ -1,28 +1,10 @@
 # Singularity
 
-# Create build directory
+# Getting Started
 
-```sh
-mkdir build && cd build
-```
+## Using Build Scripts
 
-# Install dependencies with Conan 2.x
-```
-conan install .. --output-folder=. --build=missing
-```
-
-# Configure with CMake using Conan 2.x toolchain
-```
-cmake -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake ..
-```
-
-# Build
-
-```sh
-cmake --build .
-```
-
-Alternatively, you can use the provided build script:
+From the project root directory:
 
 ```bash
 # Run the build script (automatically handles Conan setup)
@@ -36,6 +18,42 @@ Alternatively, you can use the provided build script:
 
 # Run build script with clang compiler and execute tests
 ./scripts/build.sh --clang --test
+```
+
+## Manual
+
+### Create build directory
+```sh
+mkdir build && cd build
+```
+
+### Install dependencies with Conan
+
+It's recommended to install Conan in a Python virtual environment:
+
+```bash
+# Create a virtual environment
+python3 -m venv /path/to/venv
+
+# Activate the virtual environment
+source /path/to/venv/bin/activate
+
+# Install Conan in the virtual environment
+pip install "conan>=2.0.0"
+
+# Now you can use Conan
+conan install .. --output-folder=. --build=missing
+```
+
+### Configure with CMake using Conan toolchain and Ninja
+```
+cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake ..
+```
+
+### Build with Ninja
+
+```sh
+ninja
 ```
 
 ## Troubleshooting
@@ -56,13 +74,22 @@ If you're using an older version of Conan 1.x, you'll need to upgrade:
 pip install --upgrade "conan>=2.0.0"
 ```
 
+### Build System
+
+This project uses the Ninja build system for faster build times and better incremental builds. Make sure to install Ninja on your system:
+
+- On Ubuntu/Debian: `apt-get install ninja-build`
+- On macOS: `brew install ninja`
+- On Windows: `choco install ninja` or download from the [official GitHub release](https://github.com/ninja-build/ninja/releases)
+
 ### Build Failures
 
 If you encounter build failures related to missing dependencies, make sure you have:
 
 1. Installed Conan 2.x package manager
-2. Run the Conan install step with `--output-folder=.` and `--build=missing` flags
-3. Ensured you have a C++17 compatible compiler
+2. Installed Ninja build system
+3. Run the Conan install step with `--output-folder=.` and `--build=missing` flags
+4. Ensured you have a C++17 compatible compiler
 
 ## Usage
 

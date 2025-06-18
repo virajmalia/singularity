@@ -1,33 +1,19 @@
-FROM ubuntu:22.04 AS builder
+FROM ubuntu:24.04 AS builder
 
 # Install build tools and clang/LLVM toolchain
-RUN apt-get update && apt-get install -y \
-    cmake \
-    python3-pip \
-    git \
-    libssl-dev \
-    pkg-config \
-    clang \
-    clang++ \
-    llvm \
-    lld \
-    libc++-dev \
-    libc++abi-dev \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y clang llvm lld libc++-dev cmake ninja-build python3-pip && \
+    which clang && clang --version
 
 # Set clang as the default compiler
 ENV CC=clang
 ENV CXX=clang++
+ENV PATH="/usr/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/usr/lib:${LD_LIBRARY_PATH}"
 
-# Install conan
-RUN pip3 install conan
-
-# Setup conan with proper Conan 2.x syntax
-RUN conan profile detect --force && \
-    mkdir -p /root/.conan2/profiles && \
-    PROFILE_PATH=$(conan profile path default) && \
-    echo 'tools.system.package_manager:mode=install' >> $PROFILE_PATH && \
-    echo 'tools.system.package_manager:sudo=True' >> $PROFILE_PATH
+# Install Conan package manager
+RUN pip install --no-cache-dir --break-system-packages conan && \
+    which conan && conan --version
+ENV PATH="/usr/local/bin:${PATH}"
 
 # Copy source code
 WORKDIR /app
@@ -39,27 +25,15 @@ RUN bash ./scripts/setup_conan.sh
 # Build with dynamic linking using clang
 RUN mkdir build && cd build && \
     conan install .. --output-folder=. --build=missing && \
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake \
-    -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ .. && \
+    ls && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake && \
     cmake --build . -j$(nproc)
 
-# Create runtime image
-FROM ubuntu:22.04
-
-# When using Conan with dynamic libraries, we need to copy the libraries
-# from the builder stage to the runtime image
-RUN apt-get update && apt-get install -y \
-    libssl3 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy required runtime libraries from builder stage
-COPY --from=builder /app/build/bin/ /app/bin/
-COPY --from=builder /app/build/lib/ /app/lib/
+# Install application to a specific directory
+RUN cd build && cmake --install . --prefix=/app/install
 
 # Set library path so that the executable can find the shared libraries
-ENV LD_LIBRARY_PATH=/app/lib
-
-WORKDIR /app
+ENV LD_LIBRARY_PATH=/app/install/lib:${LD_LIBRARY_PATH}
 
 # Set entrypoint to use the executable from the copied directory
-ENTRYPOINT ["/app/bin/singularity"]
+ENTRYPOINT ["/bin/bash", "-c", "source /app/build/conanrunenv-release-x86_64.sh && /app/install/bin/singularity --repo https://github.com/Klipper3d/klipper"]

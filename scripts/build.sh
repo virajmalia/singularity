@@ -32,6 +32,12 @@ if [ "$USE_CLANG" = true ]; then
     echo "Using clang/LLVM toolchain..."
     export CC=clang
     export CXX=clang++
+    # Print clang version for debugging
+    echo "Clang version: $(clang --version)"
+    
+    # Configure to use libc++ on Ubuntu
+    export CXXFLAGS="${CXXFLAGS} -stdlib=libc++"
+    export LDFLAGS="${LDFLAGS} -stdlib=libc++"
 else
     echo "Using default system compiler..."
 fi
@@ -56,16 +62,21 @@ conan install .. --output-folder=. --build=missing -c tools.system.package_manag
 # No need to generate custom provider with CMakeDeps and CMakeToolchain
 echo "Using Conan 2.x CMakeDeps and CMakeToolchain generators..."
 
-# Configure with CMake using Conan 2.x generated toolchain
+# Configure with CMake using Conan 2.x generated toolchain and Ninja generator
 if [ "$USE_CLANG" = true ]; then
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake \
-          -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
+    # Pass environment variables to ensure consistent compiler flags
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake \
+          -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+          -DCMAKE_CXX_FLAGS="${CXXFLAGS}" \
+          -DCMAKE_EXE_LINKER_FLAGS="${LDFLAGS}" \
+          -DCMAKE_SHARED_LINKER_FLAGS="${LDFLAGS}" \
+          -DCMAKE_MODULE_LINKER_FLAGS="${LDFLAGS}" ..
 else
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake ..
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake ..
 fi
 
-# Build
-cmake --build . -- -j$(nproc)
+# Build with Ninja
+ninja
 
 # Run tests if requested
 if [ "$RUN_TESTS" = true ]; then
