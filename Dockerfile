@@ -40,10 +40,9 @@ RUN apt-get update && apt-get install -y libc++-dev && rm -rf /var/lib/apt/lists
 # Copy installed application from builder stage
 COPY --from=builder /app/install/bin/ /app/bin/
 COPY --from=builder /app/install/lib/ /app/lib/
-COPY --from=builder /app/install/include/ /app/include/
 
 # Set library path so that the executable can find the shared libraries
-ENV LD_LIBRARY_PATH=/app/lib
+ENV LD_LIBRARY_PATH=/app/lib:${LD_LIBRARY_PATH}
 
 WORKDIR /app
 
