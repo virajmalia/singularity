@@ -1,4 +1,4 @@
-FROM ubuntu:25.04 AS builder
+FROM ubuntu:24.04 AS builder
 
 # Install build tools and clang/LLVM toolchain
 RUN apt-get update && apt-get install -y clang-19 lldb-19 lld-19 cmake ninja-build python3-pip && \
@@ -32,7 +32,7 @@ RUN mkdir build && cd build && \
 RUN cd build && cmake --install . --prefix=/app/install
 
 # Create runtime image
-FROM ubuntu:25.04
+FROM ubuntu:24.04
 
 # Install required runtime libraries
 RUN apt-get update && apt-get install -y libc++-dev && rm -rf /var/lib/apt/lists/*
