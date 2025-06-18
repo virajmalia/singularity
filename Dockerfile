@@ -1,7 +1,7 @@
 FROM ubuntu:25.04 AS builder
 
 # Install build tools and clang/LLVM toolchain
-RUN apt-get update && apt-get install -y libc++-dev cmake ninja-build python3 python3-pip
+RUN apt-get update && apt-get install -y libc++-dev cmake ninja-build python3-venv
 
 # Set clang as the default compiler
 ENV CC=clang
