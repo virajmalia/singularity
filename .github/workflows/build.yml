@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
 
     steps:
@@ -65,8 +65,7 @@ jobs:
         name: singularity-package
         path: build/*.tar.gz
 
-  docker:
-    needs: build
+  docker-ci:
     runs-on: ubuntu-latest
 
     steps:
