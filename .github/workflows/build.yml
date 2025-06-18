@@ -17,7 +17,7 @@ jobs:
       run: |
         # Update package lists and install necessary tools
         sudo apt-get update
-        sudo apt-get install -y libc++-dev cmake ninja-build
+        sudo apt-get install -y clang llvm lld libc++-dev cmake ninja-build
 
         # Check installed versions
         clang --version

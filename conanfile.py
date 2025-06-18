@@ -9,9 +9,9 @@ class SingularityConan(ConanFile):
     # No generators here, we use the generate() method instead
     
     def requirements(self):
-        self.requires("libcurl/7.86.0")
-        self.requires("libgit2/1.5.0")
-        self.requires("gtest/1.12.1")
+        self.requires("libcurl/8.12.1")
+        self.requires("libgit2/1.8.4")
+        self.requires("gtest/1.16.0")
     
     def configure(self):
         # Use dynamic libraries
