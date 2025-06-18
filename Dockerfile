@@ -36,4 +36,4 @@ RUN cd build && cmake --install . --prefix=/app/install
 ENV LD_LIBRARY_PATH=/app/install/lib:${LD_LIBRARY_PATH}
 
 # Set entrypoint to use the executable from the copied directory
-ENTRYPOINT ["/bin/bash", "-c", "source /app/build/conanrunenv-release-x86_64.sh && /app/install/bin/singularity --repo https://github.com/virajmalia/singularity"]
+ENTRYPOINT ["/bin/bash", "-c", "source /app/build/conanrunenv-release-x86_64.sh && /app/install/bin/singularity --repo https://github.com/Klipper3d/klipper"]
