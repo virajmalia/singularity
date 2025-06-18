@@ -25,7 +25,6 @@ RUN bash ./scripts/setup_conan.sh
 # Build with dynamic linking using clang
 RUN mkdir build && cd build && \
     conan install .. --output-folder=. --build=missing && \
-    ls && \
     cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake && \
     cmake --build . -j$(nproc)
 
@@ -48,4 +47,4 @@ ENV LD_LIBRARY_PATH=/app/lib:${LD_LIBRARY_PATH}
 WORKDIR /app
 
 # Set entrypoint to use the executable from the copied directory
-ENTRYPOINT ["/app/bin/singularity"]
+ENTRYPOINT ["/run/media/virajm/MySpace/code-repos/singularity/build/conanrunenv-release-x86_64.sh && /app/bin/singularity"]
