@@ -1,6 +1,5 @@
 #include "singularity/application.hpp"
 #include "singularity/repo_analyzer.hpp"
-#include "singularity/formatter.hpp"
 #include "singularity/security_recommender.hpp"
 #include <cstdlib>  // For std::exit
 #include <iostream>
@@ -44,7 +43,6 @@ bool parse_bool_flag(const std::string& arg) {
 
 bool Application::parse_args(int argc, char** argv) {
     // Initialize defaults
-    use_api_ = true;
     verbose_ = false;
     generate_report_ = false;
 
@@ -63,28 +61,12 @@ bool Application::parse_args(int argc, char** argv) {
             else if (arg == "-r" || arg == "--repo") {
                 if (i + 1 < argc) {
                     repo_url_ = argv[++i];
+                    // Note: We no longer validate GitHub URL here
+                    // This will be handled by the RepoAnalyzerFactory
                 } else {
                     std::cerr << "Error: --repo requires a URL" << std::endl;
                     print_usage();
                     return false;
-                }
-            }
-            else if (arg == "-p" || arg == "--path") {
-                if (i + 1 < argc) {
-                    repo_path_ = argv[++i];
-                } else {
-                    std::cerr << "Error: --path requires a directory path" << std::endl;
-                    print_usage();
-                    return false;
-                }
-            }
-            else if (arg == "-a" || arg == "--api") {
-                if (i + 1 < argc && argv[i+1][0] != '-') {
-                    // Next arg is a value, not another flag
-                    use_api_ = parse_bool_flag(argv[++i]);
-                } else {
-                    // Flag without value, assume true
-                    use_api_ = true;
                 }
             }
             else if (arg == "--security-report") {
@@ -105,9 +87,9 @@ bool Application::parse_args(int argc, char** argv) {
             }
         }
 
-        // Check that we have either repo URL or path
-        if (repo_url_.empty() && repo_path_.empty()) {
-            std::cerr << "Error: Must specify either --repo or --path" << std::endl;
+        // Check that we have a repo URL
+        if (repo_url_.empty()) {
+            std::cerr << "Error: Must specify --repo with a GitHub URL" << std::endl;
             print_usage();
             return false;
         }
@@ -121,17 +103,14 @@ bool Application::parse_args(int argc, char** argv) {
 }
 
 void Application::print_usage() {
-    std::cout << "Singularity - Git repository language detector\n\n"
-              << "Usage: singularity --repo <url> [OPTIONS]\n"
-              << "   or: singularity --path <local_path> [OPTIONS]\n\n"
+    std::cout << "Singularity - Repository language detector\n\n"
+              << "Usage: singularity --repo <repository_url> [OPTIONS]\n\n"
               << "Options:\n"
               << "  -h, --help              Show this help message and exit\n"
               << "  -v, --version           Show version and exit\n"
-              << "  -r, --repo <url>        URL of git repository to analyze\n"
-              << "  -p, --path <path>       Path to local git repository\n"
-              << "  -a, --api               Use GitHub API when possible (default: true)\n"
+              << "  -r, --repo <url>        Repository URL to analyze (currently only GitHub URLs are supported)\n"
               << "  --verbose               Show verbose output\n"
-              << "  --security-report        Generate a security report\n";
+              << "  --security-report [file]   Generate a security report, optionally write to file\n";
 }
 
 void Application::print_version() {
@@ -141,17 +120,16 @@ void Application::print_version() {
 bool Application::analyze_repo() {
     std::unique_ptr<RepoAnalyzer> analyzer;
 
-    // Create analyzer based on input type
-    if (!repo_path_.empty()) {
-        if (verbose_) {
-            std::cout << "Analyzing local repository: " << repo_path_ << std::endl;
-        }
-        analyzer = RepoAnalyzerFactory::create_local_analyzer(repo_path_);
-    } else {
-        if (verbose_) {
-            std::cout << "Analyzing remote repository: " << repo_url_ << std::endl;
-        }
-        analyzer = RepoAnalyzerFactory::create_remote_analyzer(repo_url_, use_api_);
+    // Create appropriate analyzer for the repository URL
+    if (verbose_) {
+        std::cout << "Analyzing repository: " << repo_url_ << std::endl;
+    }
+
+    try {
+        analyzer = RepoAnalyzerFactory::create_analyzer(repo_url_);
+    } catch (const std::exception& e) {
+        std::cerr << "Error creating analyzer: " << e.what() << std::endl;
+        return false;
     }
 
     // Set progress callback
@@ -165,12 +143,6 @@ bool Application::analyze_repo() {
     }
 
     LanguageStats stats = analyzer->analyze();
-
-    // Create formatter
-    TextFormatter formatter;
-
-    // Format results and write to stdout
-    std::cout << formatter.format(stats) << std::endl;
 
     // Generate security report if requested
     if (generate_report_) {

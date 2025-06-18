@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "singularity/security_recommender.hpp"
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -25,6 +24,8 @@
 #include <cstdlib>  // For getenv()
 #include <fmt/core.h>
 #include <regex>
+
+#include "singularity/security_recommender.hpp"
 
 // Simple JSON parsing helpers for our specific use case
 namespace {

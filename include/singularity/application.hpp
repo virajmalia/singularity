@@ -83,8 +83,6 @@ private:
     void on_progress(int percentage, const std::string& message);
 
     std::string repo_url_;
-    std::string repo_path_;
-    bool use_api_{true};
     bool verbose_{false};
     bool generate_report_{false};
     std::string output_file_;

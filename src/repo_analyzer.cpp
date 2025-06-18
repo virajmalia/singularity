@@ -1,6 +1,7 @@
 #include "singularity/repo_analyzer.hpp"
 #include "singularity/analyzers.hpp"
 #include <memory>
+#include <iostream>
 
 namespace singularity {
 
@@ -14,20 +15,23 @@ void RepoAnalyzer::report_progress(int percentage, const std::string& message) {
     }
 }
 
-std::unique_ptr<RepoAnalyzer> RepoAnalyzerFactory::create_local_analyzer(const std::string& path) {
-    return std::make_unique<LocalRepoAnalyzer>(path);
-}
+std::unique_ptr<RepoAnalyzer> RepoAnalyzerFactory::create_analyzer(
+    const std::string& url) {
 
-std::unique_ptr<RepoAnalyzer> RepoAnalyzerFactory::create_remote_analyzer(
-    const std::string& url, bool use_api) {
-    
-    if (use_api && url.find("github.com") != std::string::npos) {
-        // Use GitHub API for GitHub repositories if requested
+    // Determine repository type from URL
+    if (url.find("github.com") != std::string::npos) {
+        std::cout << "Detected GitHub repository, using GitHub API for analysis" << std::endl;
         return std::make_unique<GitHubApiAnalyzer>(url);
     }
 
-    // Use generic remote analyzer for other repositories
-    return std::make_unique<RemoteRepoAnalyzer>(url);
+    // This is where we would add support for other repository types
+    // For example:
+    // if (url.find("gitlab.com") != std::string::npos) {
+    //     return std::make_unique<GitLabApiAnalyzer>(url);
+    // }
+
+    // If we don't recognize the repository type
+    throw std::runtime_error("Unsupported repository URL. Currently only GitHub repositories are supported.");
 }
 
 } // namespace singularity

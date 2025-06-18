@@ -10,12 +10,16 @@ namespace singularity {
 
 /**
  * @brief Class that represents language detection results
+ * 
+ * Simplified to focus only on languages and their percentages, which are
+ * the primary data needed for the application. File paths are no longer tracked
+ * individually to reduce memory overhead.
  */
 class LanguageStats {
 public:
     /**
      * @brief Adds file to statistics
-     * @param file_path Path to the file
+     * @param file_path Path to the file (for compatibility, now ignored)
      * @param language Detected language
      * @param size Size of the file in bytes
      */
@@ -42,9 +46,9 @@ public:
     std::vector<std::string> get_languages() const;
 
     /**
-     * @brief Get files for a specific language
+     * @brief Get files for a specific language (for API compatibility)
      * @param language Language name
-     * @return Vector of file paths
+     * @return Empty vector, as files are no longer tracked individually
      */
     std::vector<std::string> get_files_for_language(const std::string& language) const;
 
@@ -60,12 +64,8 @@ public:
     void clear();
 
 private:
-    struct LanguageData {
-        size_t total_size{0};
-        std::vector<std::string> files;
-    };
-
-    std::map<std::string, LanguageData> language_data_;
+    // Store language data directly without tracking individual files
+    std::map<std::string, size_t> language_sizes_;
     size_t total_size_{0};
 };
 

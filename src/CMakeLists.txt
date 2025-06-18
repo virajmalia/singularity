@@ -2,8 +2,6 @@ add_library(singularity_lib
     language_stats.cpp
     repo_analyzer.cpp
     analyzers.cpp
-    formatter.cpp
-    language_detector.cpp
     application.cpp
     security_recommender.cpp
 )
