@@ -33,32 +33,6 @@ using json = nlohmann::json;
 
 namespace singularity {
 
-// Helper function to convert SecurityScanType to string
-std::string scan_type_to_string(SecurityScanType type) {
-    switch (type) {
-        case SecurityScanType::STATIC_ANALYSIS:
-            return "Static Analysis";
-        case SecurityScanType::DEPENDENCY_VULNERABILITY:
-            return "Dependency Vulnerability";
-        case SecurityScanType::SECRET_DETECTION:
-            return "Secret Detection";
-        case SecurityScanType::SAST:
-            return "SAST";
-        case SecurityScanType::DAST:
-            return "DAST";
-        case SecurityScanType::SECURITY_LINTING:
-            return "Security Linting";
-        case SecurityScanType::CONTAINER_SECURITY:
-            return "Container Security";
-        case SecurityScanType::CODE_QUALITY:
-            return "Code Quality";
-        case SecurityScanType::LICENSE_COMPLIANCE:
-            return "License Compliance";
-        default:
-            return "Unknown";
-    }
-}
-
 // Singleton implementation
 SecurityRecommender& SecurityRecommender::instance() {
     static SecurityRecommender instance;
@@ -270,11 +244,6 @@ std::string SecurityRecommender::generate_recommendations(const LanguageStats& s
             "../../../security_report_template.md"
         };
         
-        const char* env_path = std::getenv("SINGULARITY_TEMPLATE_PATH");
-        if (env_path) {
-            possible_paths.insert(possible_paths.begin(), env_path);
-        }
-        
         for (const auto& path : possible_paths) {
             template_file.open(path);
             if (template_file.is_open()) {
@@ -291,7 +260,7 @@ std::string SecurityRecommender::generate_recommendations(const LanguageStats& s
         std::string report = template_content.str();
 
         // Get repository name from stats or use a default
-        std::string repo_name = "Unknown Repository";
+        std::string repo_name = stats.get_repo_name();
         // If we had repository metadata, we would set repo_name here
 
         // Set basic report information
@@ -304,7 +273,7 @@ std::string SecurityRecommender::generate_recommendations(const LanguageStats& s
         report = std::regex_replace(report, std::regex("\\{\\{PROJECT_NAME\\}\\}"), repo_name);
         report = std::regex_replace(report, std::regex("\\{\\{REPORT_DATE\\}\\}"), date_str);
         report = std::regex_replace(report, std::regex("\\{\\{ANALYSIS_VERSION\\}\\}"), "1.0.0");
-        report = std::regex_replace(report, std::regex("\\{\\{REPOSITORY_URL\\}\\}"), "");
+        report = std::regex_replace(report, std::regex("\\{\\{REPOSITORY_URL\\}\\}"), stats.get_repo_url());
         report = std::regex_replace(report, std::regex("\\{\\{TOOL_NAME\\}\\}"), "Singularity Security Analyzer");
         report = std::regex_replace(report, std::regex("\\{\\{CONTACT_INFO\\}\\}"), "support@singularity.example.com");
 
@@ -314,6 +283,7 @@ std::string SecurityRecommender::generate_recommendations(const LanguageStats& s
         languages_ss << "The following languages were detected in this repository:\n\n";
         for (const auto& language : languages) {
             double percentage = stats.get_language_percentage(language);
+            if(percentage < 1.0)    continue; // Skip languages with less than 1% of codebase
             languages_ss << "- **" << language << "**: " << std::fixed << std::setprecision(1) 
                         << percentage << "% of codebase\n";
         }
@@ -333,6 +303,10 @@ std::string SecurityRecommender::generate_recommendations(const LanguageStats& s
             // Generate content for each language
             std::stringstream language_content;
             for (const auto& language : languages) {
+                double percentage = stats.get_language_percentage(language);
+                if(percentage < 1.0) {
+                    continue; // Skip languages with less than 1% of codebase
+                }
                 std::string lang_section = language_template;
                 lang_section = std::regex_replace(lang_section, std::regex("\\{\\{LANGUAGE_NAME\\}\\}"), language);
                 
@@ -691,56 +665,6 @@ void SecurityRecommender::add_general_tools(
     
     recommendations_[scan_type].general_tools = std::move(tools);
     recommendations_[scan_type].general_config = config;
-}
-
-std::string SecurityRecommender::generate_section(SecurityScanType type, const LanguageStats& stats) {
-    std::stringstream ss;
-    ss << "## " << scan_type_to_string(type) << "\n\n";
-    
-    // Add general section if applicable
-    if (!recommendations_[type].general_tools.empty()) {
-        ss << "### General Tools\n\n";
-        for (const auto& tool : recommendations_[type].general_tools) {
-            ss << "- **" << tool.name << "**: " << tool.description << "\n";
-        }
-        ss << "\n";
-        
-        if (!recommendations_[type].general_config.empty()) {
-            ss << "**Configuration Guidance**:\n";
-            ss << recommendations_[type].general_config << "\n\n";
-        }
-    }
-    
-    // Add language-specific sections
-    for (const auto& language : stats.get_languages()) {
-        auto tools = get_tools_for_language(language, type);
-        if (!tools.empty()) {
-            ss << generate_language_subsection(language, type);
-        }
-    }
-    
-    return ss.str();
-}
-
-std::string SecurityRecommender::generate_language_subsection(
-    const std::string& language, SecurityScanType scan_type) {
-    
-    std::stringstream ss;
-    ss << "### " << language << "\n\n";
-    
-    auto tools = get_tools_for_language(language, scan_type);
-    for (const auto& tool : tools) {
-        ss << "- **" << tool.name << "**\n";
-    }
-    ss << "\n";
-    
-    auto config = get_config_for_language(language, scan_type);
-    if (!config.empty()) {
-        ss << "**Configuration**:\n";
-        ss << config << "\n\n";
-    }
-    
-    return ss.str();
 }
 
 std::string SecurityRecommender::generate_workflow_steps(const std::string& language) {

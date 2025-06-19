@@ -57,6 +57,8 @@ LanguageStats GitHubApiAnalyzer::analyze() {
         std::string endpoint = "/repos/" + owner_ + "/" + repo_ + "/languages";
         std::string response = make_api_request(endpoint);
 
+        stats.set_repo_url(repo_url_);
+
         // Check if response contains an error message
         if (response.find("\"message\":") != std::string::npos &&
             (response.find("\"Not Found\"") != std::string::npos ||

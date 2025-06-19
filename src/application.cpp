@@ -61,8 +61,6 @@ bool Application::parse_args(int argc, char** argv) {
             else if (arg == "-r" || arg == "--repo") {
                 if (i + 1 < argc) {
                     repo_url_ = argv[++i];
-                    // Note: We no longer validate GitHub URL here
-                    // This will be handled by the RepoAnalyzerFactory
                 } else {
                     std::cerr << "Error: --repo requires a URL" << std::endl;
                     print_usage();

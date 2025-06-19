@@ -13,6 +13,28 @@ namespace singularity {
  */
 class LanguageStats {
 public:
+
+    std::string get_repo_name() const {
+        return repo_name;
+    }
+
+    /**
+     * @brief Set the repository URL
+     * @param url Repository URL
+     */
+    void set_repo_url(const std::string& url) {
+        repo_url = url;
+        repo_name = repo_url.substr(repo_url.find_first_of('.') + 5);
+    }
+
+    /**
+     * @brief Get the repository URL
+     * @param url Output parameter to store the URL
+     */
+    std::string get_repo_url() const {
+        return repo_url;
+    }
+
     /**
      * @param language Detected language
      */
@@ -51,6 +73,8 @@ public:
 
 private:
     // Store language data directly without tracking individual files
+    std::string repo_url;
+    std::string repo_name;
     std::map<std::string, size_t> language_sizes_;
     size_t total_size_{0};
 };

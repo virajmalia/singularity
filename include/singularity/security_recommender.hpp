@@ -132,24 +132,6 @@ private:
         const std::string& config);
 
     /**
-     * @brief Generate a section of the report for a specific scan type
-     * @param type Scan type
-     * @param stats Language statistics
-     * @return Generated markdown section
-     */
-    std::string generate_section(SecurityScanType type, const LanguageStats& stats);
-
-    /**
-     * @brief Generate a language-specific subsection
-     * @param language The programming language
-     * @param scan_type Type of security scan
-     * @return Generated markdown subsection
-     */
-    std::string generate_language_subsection(
-        const std::string& language,
-        SecurityScanType scan_type);
-
-    /**
      * @brief Generate GitHub workflow steps for a specific language
      * @param language The programming language
      * @return YAML content for workflow steps
