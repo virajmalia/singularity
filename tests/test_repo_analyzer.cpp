@@ -14,8 +14,8 @@ public:
         }
         
         singularity::LanguageStats stats;
-        stats.add_file("mock_file.cpp", "C++", 1000);
-        stats.add_file("mock_file.py", "Python", 500);
+        stats.add_file("C++", 1000);
+        stats.add_file("Python", 500);
         return stats;
     }
     

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "singularity/language_stats.hpp"
+#include <nlohmann/json.hpp>
 #include <string>
 #include <map>
 #include <vector>
@@ -96,9 +97,10 @@ public:
     /**
      * @brief Generate a GitHub Actions workflow for security scanning
      * @param stats Language statistics from repository analysis
-     * @return YAML content for GitHub workflow
+     * @param output_dir Directory where workflow files should be written
+     * @return YAML content for GitHub workflow (for backward compatibility)
      */
-    std::string generate_github_workflow(const LanguageStats& stats);
+    std::string generate_github_workflow(const LanguageStats& stats, const std::string& output_dir = "");
 
 private:
     SecurityRecommender();

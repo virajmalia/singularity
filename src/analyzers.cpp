@@ -92,8 +92,8 @@ LanguageStats GitHubApiAnalyzer::analyze() {
 
         // Add detected languages with their actual byte counts
         for (const auto& [language, size] : language_sizes) {
-            std::cout << "Detected language: " << language << " (" << size << " bytes)" << std::endl;
-            stats.add_file("[GitHub API] " + language, language, size);
+            //std::cout << "Detected language: " << language << " (" << size << " bytes)" << std::endl;
+            stats.add_file(language, size);
         }
 
         report_progress(100, "Completed language analysis");

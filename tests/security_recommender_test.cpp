@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "singularity/security_recommender.hpp"
 #include "singularity/language_stats.hpp"
+#include <filesystem>
 
 using namespace singularity;
 
@@ -13,9 +14,9 @@ protected:
     // Helper function to create test language stats
     LanguageStats create_test_stats() {
         LanguageStats stats;
-        stats.add_file("src/main.cpp", "C++", 1000);
-        stats.add_file("src/utils.cpp", "C++", 2000);
-        stats.add_file("src/app.py", "Python", 500);
+        stats.add_file("C++", 1000);
+        stats.add_file("C++", 2000);
+        stats.add_file("Python", 500);
         return stats;
     }
 
@@ -82,9 +83,17 @@ TEST_F(SecurityRecommenderTest, GenerateRecommendations) {
 
 TEST_F(SecurityRecommenderTest, GenerateGithubWorkflow) {
     LanguageStats stats = create_test_stats();
+    // Don't pass a directory to avoid creating files during tests
     std::string workflow = recommender_.generate_github_workflow(stats);
     
     EXPECT_FALSE(workflow.empty());
     EXPECT_TRUE(workflow.find("Security Scan") != std::string::npos);
     EXPECT_TRUE(workflow.find("runs-on") != std::string::npos);
+    
+    // Test with output directory specified but use a temporary path
+    std::string temp_dir = std::filesystem::temp_directory_path().string();
+    std::string workflow_summary = recommender_.generate_github_workflow(stats, temp_dir);
+    
+    EXPECT_FALSE(workflow_summary.empty());
+    EXPECT_TRUE(workflow_summary.find("workflow") != std::string::npos);
 }

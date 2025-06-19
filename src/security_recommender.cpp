@@ -24,229 +24,12 @@
 #include <cstdlib>  // For getenv()
 #include <fmt/core.h>
 #include <regex>
+#include <nlohmann/json.hpp>
 
 #include "singularity/security_recommender.hpp"
 
-// Simple JSON parsing helpers for our specific use case
-namespace {
-    class SimpleJsonValue {
-    public:
-        SimpleJsonValue() : type_(Type::Null) {}
-        
-        enum class Type { Null, String, Object, Array };
-        
-        Type getType() const { return type_; }
-        
-        void setString(const std::string& value) {
-            type_ = Type::String;
-            string_value_ = value;
-        }
-        
-        void setObject() {
-            type_ = Type::Object;
-            object_value_.clear();
-        }
-        
-        void setArray() {
-            type_ = Type::Array;
-            array_value_.clear();
-        }
-        
-        std::string getString() const { return string_value_; }
-        
-        void addToObject(const std::string& key, const SimpleJsonValue& value) {
-            object_value_[key] = value;
-        }
-        
-        void addToArray(const SimpleJsonValue& value) {
-            array_value_.push_back(value);
-        }
-        
-        const SimpleJsonValue& operator[](const std::string& key) const {
-            static SimpleJsonValue null_value;
-            auto it = object_value_.find(key);
-            if (it != object_value_.end()) {
-                return it->second;
-            }
-            return null_value;
-        }
-        
-        SimpleJsonValue& operator[](const std::string& key) {
-            return object_value_[key];
-        }
-        
-        const std::vector<SimpleJsonValue>& getArray() const {
-            return array_value_;
-        }
-        
-        const std::map<std::string, SimpleJsonValue>& getObject() const {
-            return object_value_;
-        }
-        
-    private:
-        Type type_;
-        std::string string_value_;
-        std::map<std::string, SimpleJsonValue> object_value_;
-        std::vector<SimpleJsonValue> array_value_;
-    };
-    
-    SimpleJsonValue parseJson(std::istream& input) {
-        std::string line;
-        SimpleJsonValue root;
-        root.setObject();
-        
-        std::string current_section;
-        std::map<std::string, SimpleJsonValue> current_language_mappings;
-        std::map<std::string, SimpleJsonValue> general_recommendations;
-        
-        while (std::getline(input, line)) {
-            // Trim whitespace
-            line.erase(0, line.find_first_not_of(" \t\r\n"));
-            line.erase(line.find_last_not_of(" \t\r\n") + 1);
-            
-            if (line.empty() || line[0] == '#' || line[0] == '/') {
-                continue; // Skip comments and empty lines
-            }
-            
-            if (line == "{" || line == "}") {
-                continue; // Skip brackets
-            }
-            
-            // Look for section headers
-            if (line == "\"language_mappings\": {") {
-                current_section = "language_mappings";
-                SimpleJsonValue mappings;
-                mappings.setObject();
-                root.addToObject("language_mappings", mappings);
-                continue;
-            }
-            else if (line == "\"general_recommendations\": {") {
-                current_section = "general_recommendations";
-                SimpleJsonValue recs;
-                recs.setObject();
-                root.addToObject("general_recommendations", recs);
-                continue;
-            }
-            else if (line == "\"cicd_templates\": {") {
-                current_section = "cicd_templates";
-                SimpleJsonValue templates;
-                templates.setObject();
-                root.addToObject("cicd_templates", templates);
-                continue;
-            }
-            
-            // Parse key/value pairs
-            auto colon_pos = line.find(":");
-            if (colon_pos != std::string::npos) {
-                std::string key = line.substr(0, colon_pos);
-                std::string value = line.substr(colon_pos + 1);
-                
-                // Trim quotes and whitespace
-                key.erase(0, key.find_first_not_of(" \t\r\n\""));
-                key.erase(key.find_last_not_of(" \t\r\n\"") + 1);
-                value.erase(0, value.find_first_not_of(" \t\r\n\""));
-                value.erase(value.find_last_not_of(" \t\r\n\",") + 1);
-                
-                if (current_section == "language_mappings") {
-                    if (key.find("_tools") != std::string::npos || key.find("_scanners") != std::string::npos) {
-                        // This is an array of tools
-                        SimpleJsonValue tools;
-                        tools.setArray();
-                        
-                        // Parse the array
-                        if (value == "[") {
-                            // Multi-line array, read until closing bracket
-                            while (std::getline(input, line)) {
-                                line.erase(0, line.find_first_not_of(" \t\r\n"));
-                                line.erase(line.find_last_not_of(" \t\r\n") + 1);
-                                
-                                if (line == "]" || line == "],") {
-                                    break;
-                                }
-                                
-                                // Parse the tool name
-                                line.erase(0, line.find_first_not_of(" \t\r\n\""));
-                                line.erase(line.find_last_not_of(" \t\r\n\",") + 1);
-                                
-                                SimpleJsonValue tool;
-                                tool.setString(line);
-                                tools.addToArray(tool);
-                            }
-                        }
-                        
-                        // Add to the language mapping
-                        SimpleJsonValue& lang_obj = root["language_mappings"][current_language_mappings["name"].getString()];
-                        if (lang_obj.getType() == SimpleJsonValue::Type::Null) {
-                            lang_obj.setObject();
-                        }
-                        lang_obj.addToObject(key, tools);
-                    }
-                    else if (key.find("_config") != std::string::npos || key.find("_integration") != std::string::npos || key.find("_metrics") != std::string::npos) {
-                        // This is a configuration string
-                        SimpleJsonValue config;
-                        config.setString(value);
-                        
-                        // Add to the language mapping
-                        SimpleJsonValue& lang_obj = root["language_mappings"][current_language_mappings["name"].getString()];
-                        if (lang_obj.getType() == SimpleJsonValue::Type::Null) {
-                            lang_obj.setObject();
-                        }
-                        lang_obj.addToObject(key, config);
-                    }
-                    else if (key.length() == 1) {
-                        // This is a language name
-                        SimpleJsonValue lang_name;
-                        lang_name.setString(value);
-                        current_language_mappings["name"] = lang_name;
-                    }
-                }
-                else if (current_section == "general_recommendations") {
-                    if (key.find("_tools") != std::string::npos) {
-                        // This is an array of tools
-                        SimpleJsonValue tools;
-                        tools.setArray();
-                        
-                        // Parse the array
-                        if (value == "[") {
-                            // Multi-line array, read until closing bracket
-                            while (std::getline(input, line)) {
-                                line.erase(0, line.find_first_not_of(" \t\r\n"));
-                                line.erase(line.find_last_not_of(" \t\r\n") + 1);
-                                
-                                if (line == "]" || line == "],") {
-                                    break;
-                                }
-                                
-                                // Parse the tool name
-                                line.erase(0, line.find_first_not_of(" \t\r\n\""));
-                                line.erase(line.find_last_not_of(" \t\r\n\",") + 1);
-                                
-                                SimpleJsonValue tool;
-                                tool.setString(line);
-                                tools.addToArray(tool);
-                            }
-                        }
-                        
-                        root["general_recommendations"].addToObject(key, tools);
-                    }
-                    else {
-                        // This is a general recommendation string
-                        SimpleJsonValue rec;
-                        rec.setString(value);
-                        root["general_recommendations"].addToObject(key, rec);
-                    }
-                }
-                else if (current_section == "cicd_templates") {
-                    SimpleJsonValue template_value;
-                    template_value.setString(value);
-                    root["cicd_templates"].addToObject(key, template_value);
-                }
-            }
-        }
-        
-        return root;
-    }
-}
+// Using the nlohmann json library for JSON parsing
+using json = nlohmann::json;
 
 namespace singularity {
 
@@ -301,11 +84,6 @@ void SecurityRecommender::initialize() {
             "../../../security_mappings.json"
         };
         
-        const char* env_path = std::getenv("SINGULARITY_MAPPINGS_PATH");
-        if (env_path) {
-            possible_paths.insert(possible_paths.begin(), env_path);
-        }
-        
         for (const auto& path : possible_paths) {
             mappings_file.open(path);
             if (mappings_file.is_open()) {
@@ -317,18 +95,18 @@ void SecurityRecommender::initialize() {
             throw std::runtime_error("Could not open security_mappings.json from any expected location");
         }
 
-        // Parse JSON mappings
-        SimpleJsonValue mappings_json = parseJson(mappings_file);
+        // Parse JSON mappings using nlohmann_json
+        json mappings_json = nlohmann::json::parse(mappings_file);
 
         // Initialize language-specific tools
-        const SimpleJsonValue& language_mappings = mappings_json["language_mappings"];
-        for (const auto& [language, tools] : language_mappings.getObject()) {
+        const json& language_mappings = mappings_json["language_mappings"];
+        for (const auto& [language, tools] : language_mappings.items()) {
             // Static Analysis
             std::vector<SecurityTool> static_analysis_tools;
-            if (tools["static_analysis_tools"].getType() == SimpleJsonValue::Type::Array) {
-                for (const auto& tool : tools["static_analysis_tools"].getArray()) {
+            if (tools.contains("static_analysis_tools") && tools["static_analysis_tools"].is_array()) {
+                for (const auto& tool : tools["static_analysis_tools"]) {
                     static_analysis_tools.push_back({
-                        tool.getString(),
+                        tool.get<std::string>(),
                         "Static analysis tool for " + language,
                         "", // URL would come from a more detailed mapping
                         "", // Installation instructions would come from a more detailed mapping
@@ -337,14 +115,14 @@ void SecurityRecommender::initialize() {
                 }
             }
             add_language_tools(language, SecurityScanType::STATIC_ANALYSIS, 
-                static_analysis_tools, tools["static_analysis_config"].getString());
+                static_analysis_tools, tools.value("static_analysis_config", ""));
             
             // Dependency Vulnerability
             std::vector<SecurityTool> cve_tools;
-            if (tools["cve_scanners"].getType() == SimpleJsonValue::Type::Array) {
-                for (const auto& tool : tools["cve_scanners"].getArray()) {
+            if (tools.contains("cve_scanners") && tools["cve_scanners"].is_array()) {
+                for (const auto& tool : tools["cve_scanners"]) {
                     cve_tools.push_back({
-                        tool.getString(),
+                        tool.get<std::string>(),
                         "Dependency vulnerability scanner for " + language,
                         "", // URL
                         "", // Installation
@@ -353,14 +131,14 @@ void SecurityRecommender::initialize() {
                 }
             }
             add_language_tools(language, SecurityScanType::DEPENDENCY_VULNERABILITY, 
-                cve_tools, tools["cve_integration"].getString());
+                cve_tools, tools.value("cve_integration", ""));
             
             // SAST
             std::vector<SecurityTool> sast_tools;
-            if (tools["sast_tools"].getType() == SimpleJsonValue::Type::Array) {
-                for (const auto& tool : tools["sast_tools"].getArray()) {
+            if (tools.contains("sast_tools") && tools["sast_tools"].is_array()) {
+                for (const auto& tool : tools["sast_tools"]) {
                     sast_tools.push_back({
-                        tool.getString(),
+                        tool.get<std::string>(),
                         "SAST tool for " + language,
                         "", // URL
                         "", // Installation
@@ -369,14 +147,14 @@ void SecurityRecommender::initialize() {
                 }
             }
             add_language_tools(language, SecurityScanType::SAST, 
-                sast_tools, tools["sast_integration"].getString());
+                sast_tools, tools.value("sast_integration", ""));
             
             // Security Linters
             std::vector<SecurityTool> linter_tools;
-            if (tools["security_linters"].getType() == SimpleJsonValue::Type::Array) {
-                for (const auto& tool : tools["security_linters"].getArray()) {
+            if (tools.contains("security_linters") && tools["security_linters"].is_array()) {
+                for (const auto& tool : tools["security_linters"]) {
                     linter_tools.push_back({
-                        tool.getString(),
+                        tool.get<std::string>(),
                         "Security linter for " + language,
                         "", // URL
                         "", // Installation
@@ -385,14 +163,14 @@ void SecurityRecommender::initialize() {
                 }
             }
             add_language_tools(language, SecurityScanType::SECURITY_LINTING, 
-                linter_tools, tools["linter_config"].getString());
+                linter_tools, tools.value("linter_config", ""));
             
             // Code Quality
             std::vector<SecurityTool> quality_tools;
-            if (tools["code_quality_tools"].getType() == SimpleJsonValue::Type::Array) {
-                for (const auto& tool : tools["code_quality_tools"].getArray()) {
+            if (tools.contains("code_quality_tools") && tools["code_quality_tools"].is_array()) {
+                for (const auto& tool : tools["code_quality_tools"]) {
                     quality_tools.push_back({
-                        tool.getString(),
+                        tool.get<std::string>(),
                         "Code quality tool for " + language,
                         "", // URL
                         "", // Installation
@@ -401,18 +179,18 @@ void SecurityRecommender::initialize() {
                 }
             }
             add_language_tools(language, SecurityScanType::CODE_QUALITY, 
-                quality_tools, tools["code_quality_metrics"].getString());
+                quality_tools, tools.value("code_quality_metrics", ""));
         }
         
         // Initialize general tools
-        const SimpleJsonValue& general_recs = mappings_json["general_recommendations"];
+        const json& general_recs = mappings_json["general_recommendations"];
         
         // Secret Detection
         std::vector<SecurityTool> secret_tools;
-        if (general_recs["secret_detection_tools"].getType() == SimpleJsonValue::Type::Array) {
-            for (const auto& tool : general_recs["secret_detection_tools"].getArray()) {
+        if (general_recs.contains("secret_detection_tools") && general_recs["secret_detection_tools"].is_array()) {
+            for (const auto& tool : general_recs["secret_detection_tools"]) {
                 secret_tools.push_back({
-                    tool.getString(),
+                    tool.get<std::string>(),
                     "Secret detection tool",
                     "", // URL
                     "", // Installation
@@ -421,14 +199,14 @@ void SecurityRecommender::initialize() {
             }
         }
         add_general_tools(SecurityScanType::SECRET_DETECTION, 
-            secret_tools, general_recs["secret_detection_strategy"].getString());
+            secret_tools, general_recs.value("secret_detection_strategy", ""));
         
         // DAST
         std::vector<SecurityTool> dast_tools;
-        if (general_recs["dast_tools"].getType() == SimpleJsonValue::Type::Array) {
-            for (const auto& tool : general_recs["dast_tools"].getArray()) {
+        if (general_recs.contains("dast_tools") && general_recs["dast_tools"].is_array()) {
+            for (const auto& tool : general_recs["dast_tools"]) {
                 dast_tools.push_back({
-                    tool.getString(),
+                    tool.get<std::string>(),
                     "Dynamic application security testing tool",
                     "", // URL
                     "", // Installation
@@ -437,14 +215,14 @@ void SecurityRecommender::initialize() {
             }
         }
         add_general_tools(SecurityScanType::DAST, 
-            dast_tools, general_recs["dast_strategy"].getString());
+            dast_tools, general_recs.value("dast_strategy", ""));
         
         // Container Security
         std::vector<SecurityTool> container_tools;
-        if (general_recs["container_scanning_tools"].getType() == SimpleJsonValue::Type::Array) {
-            for (const auto& tool : general_recs["container_scanning_tools"].getArray()) {
+        if (general_recs.contains("container_scanning_tools") && general_recs["container_scanning_tools"].is_array()) {
+            for (const auto& tool : general_recs["container_scanning_tools"]) {
                 container_tools.push_back({
-                    tool.getString(),
+                    tool.get<std::string>(),
                     "Container security scanning tool",
                     "", // URL
                     "", // Installation
@@ -453,14 +231,14 @@ void SecurityRecommender::initialize() {
             }
         }
         add_general_tools(SecurityScanType::CONTAINER_SECURITY, 
-            container_tools, general_recs["container_scanning_methods"].getString());
+            container_tools, general_recs.value("container_scanning_methods", ""));
         
         // License Compliance
         std::vector<SecurityTool> license_tools;
-        if (general_recs["license_compliance_tools"].getType() == SimpleJsonValue::Type::Array) {
-            for (const auto& tool : general_recs["license_compliance_tools"].getArray()) {
+        if (general_recs.contains("license_compliance_tools") && general_recs["license_compliance_tools"].is_array()) {
+            for (const auto& tool : general_recs["license_compliance_tools"]) {
                 license_tools.push_back({
-                    tool.getString(),
+                    tool.get<std::string>(),
                     "License compliance tool",
                     "", // URL
                     "", // Installation
@@ -469,7 +247,7 @@ void SecurityRecommender::initialize() {
             }
         }
         add_general_tools(SecurityScanType::LICENSE_COMPLIANCE, 
-            license_tools, general_recs["license_policy"].getString());
+            license_tools, general_recs.value("license_policy", ""));
 
         initialized_ = true;
     } catch (const std::exception& e) {
@@ -678,9 +456,9 @@ std::string SecurityRecommender::generate_recommendations(const LanguageStats& s
         auto license_policy = recommendations_[SecurityScanType::LICENSE_COMPLIANCE].general_config;
         report = std::regex_replace(report, std::regex("\\{\\{LICENSE_POLICY\\}\\}"), license_policy);
 
-        // Generate GitHub Actions Workflow
-        std::string github_workflow = generate_github_workflow(stats);
-        report = std::regex_replace(report, std::regex("\\{\\{GITHUB_ACTIONS_WORKFLOW\\}\\}"), github_workflow);
+        // Generate GitHub Actions Workflow files
+        std::string github_workflow_summary = generate_github_workflow(stats, "./");
+        report = std::regex_replace(report, std::regex("\\{\\{GITHUB_ACTIONS_WORKFLOW\\}\\}"), github_workflow_summary);
         
         // Other CI/CD Integration (placeholder)
         std::string other_cicd = "Additional CI/CD integration guides can be provided for GitLab CI, Jenkins, or other platforms upon request.";
@@ -786,7 +564,7 @@ std::vector<SecurityTool> SecurityRecommender::get_general_tools(SecurityScanTyp
     return recommendations_[scan_type].general_tools;
 }
 
-std::string SecurityRecommender::generate_github_workflow(const LanguageStats& stats) {
+std::string SecurityRecommender::generate_github_workflow(const LanguageStats& stats, const std::string& output_dir) {
     if (!initialized_) {
         initialize();
     }
@@ -817,31 +595,80 @@ std::string SecurityRecommender::generate_github_workflow(const LanguageStats& s
             throw std::runtime_error("Could not open security_mappings.json from any expected location");
         }
 
-        // Parse JSON mappings
-        SimpleJsonValue mappings_json = parseJson(mappings_file);
-        std::string workflow_template = mappings_json["cicd_templates"]["github_actions"].getString();
+        // Parse JSON mappings using nlohmann_json
+        json mappings_json = nlohmann::json::parse(mappings_file);
+        std::string workflow_template = mappings_json["cicd_templates"]["github_actions"].get<std::string>();
         
         // Generate language-specific sections
         std::vector<std::string> languages = stats.get_languages();
         std::stringstream language_sections;
+        std::stringstream report_summary;
+        report_summary << "The following GitHub Actions workflow file has been generated:\n\n";
         
-        for (const auto& language : languages) {
-            std::string language_section = workflow_template;
-            
-            // Replace language placeholders
-            language_section = std::regex_replace(language_section, std::regex("\\{\\{LANGUAGE_NAME\\}\\}"), language);
-            
-            // Generate language-specific workflow steps
-            std::string steps = generate_workflow_steps(language);
-            language_section = std::regex_replace(language_section, std::regex("\\{\\{LANGUAGE_SPECIFIC_STEPS\\}\\}"), steps);
-            
-            language_sections << language_section;
+        // Create the .github/workflows directory if it doesn't exist
+        std::string workflows_dir = output_dir.empty() ? ".github/workflows" : output_dir + "/.github/workflows";
+        
+        if (!output_dir.empty()) {
+            try {
+                std::filesystem::create_directories(workflows_dir);
+            } catch (const std::exception& e) {
+                throw std::runtime_error(fmt::format("Failed to create workflows directory: {}", e.what()));
+            }
         }
         
-        // Replace the language template with generated content
-        workflow_template = language_sections.str();
+        // Process the template to generate a complete workflow
+        std::string complete_workflow = workflow_template;
         
-        return workflow_template;
+        // Replace the {{#LANGUAGES}}...{{/LANGUAGES}} section with language-specific jobs
+        std::stringstream language_jobs;
+        for (auto& language : languages) {
+            // Extract the language job template
+            std::regex language_section_regex("\\{\\{#LANGUAGES\\}\\}([\\s\\S]*?)\\{\\{/LANGUAGES\\}\\}");
+            std::smatch matches;
+            if (std::regex_search(workflow_template, matches, language_section_regex) && matches.size() > 1) {
+                std::string language_job_template = matches[1].str();
+                
+                // Replace placeholders in this specific language job
+                std::string language_job = language_job_template;
+                std::replace(language.begin(), language.end(), ' ', '-');
+                std::replace(language.begin(), language.end(), '+', 'p');
+                language_job = std::regex_replace(language_job, std::regex("\\{\\{LANGUAGE_NAME\\}\\}"), language);
+                
+                // Generate language-specific workflow steps
+                std::string steps = generate_workflow_steps(language);
+                language_job = std::regex_replace(language_job, std::regex("\\{\\{LANGUAGE_SPECIFIC_STEPS\\}\\}"), steps);
+                
+                language_jobs << language_job;
+            }
+        }
+        
+        // Replace the {{#LANGUAGES}}...{{/LANGUAGES}} section with the generated language jobs
+        complete_workflow = std::regex_replace(complete_workflow, 
+            std::regex("\\{\\{#LANGUAGES\\}\\}[\\s\\S]*?\\{\\{/LANGUAGES\\}\\}"),
+            language_jobs.str());
+        
+        // Write to file if output directory is specified
+        if (!output_dir.empty()) {
+            std::string file_path = fmt::format("{}/{}", workflows_dir, "security-scan.yml");
+            std::ofstream workflow_file(file_path);
+            if (workflow_file.is_open()) {
+                workflow_file << complete_workflow;
+                workflow_file.close();
+                report_summary << "- `.github/workflows/security-scan.yml`: Complete security workflow including language-specific checks and general security scans\n";
+            } else {
+                throw std::runtime_error(fmt::format("Failed to write workflow file: {}", file_path));
+            }
+        }
+        
+        // For the report
+        std::string combined_workflows = complete_workflow;
+        
+        // If we wrote files, return the summary instead of the workflows
+        if (!output_dir.empty()) {
+            return report_summary.str();
+        }
+        
+        return combined_workflows;
     } catch (const std::exception& e) {
         throw std::runtime_error(fmt::format("Failed to generate GitHub workflow: {}", e.what()));
     }
@@ -920,16 +747,14 @@ std::string SecurityRecommender::generate_workflow_steps(const std::string& lang
     std::stringstream ss;
     
     if (language == "C++" || language == "C") {
-        ss << "      - name: Install dependencies\n"
+        ss << "- name: Install dependencies\n"
               "        run: sudo apt-get update && sudo apt-get install -y cppcheck clang-tidy\n\n"
               "      - name: Run Cppcheck\n"
               "        run: cppcheck --enable=all --std=c++17 --suppress=missingIncludeSystem .\n\n"
               "      - name: Run CodeQL Analysis\n"
-              "        uses: github/codeql-action/analyze@v2\n"
-              "        with:\n"
-              "          languages: cpp\n";
+              "        uses: github/codeql-action/analyze@v2\n";
     } else if (language == "Python") {
-        ss << "      - name: Set up Python\n"
+        ss << "- name: Set up Python\n"
               "        uses: actions/setup-python@v4\n"
               "        with:\n"
               "          python-version: '3.10'\n\n"
@@ -943,7 +768,7 @@ std::string SecurityRecommender::generate_workflow_steps(const std::string& lang
               "      - name: Check for dependency vulnerabilities\n"
               "        run: safety check\n";
     } else if (language == "JavaScript") {
-        ss << "      - name: Set up Node.js\n"
+        ss << "- name: Set up Node.js\n"
               "        uses: actions/setup-node@v3\n"
               "        with:\n"
               "          node-version: '18'\n\n"
@@ -954,7 +779,7 @@ std::string SecurityRecommender::generate_workflow_steps(const std::string& lang
               "      - name: Check for vulnerabilities\n"
               "        run: npm audit\n";
     } else if (language == "Java") {
-        ss << "      - name: Set up JDK\n"
+        ss << "- name: Set up JDK\n"
               "        uses: actions/setup-java@v3\n"
               "        with:\n"
               "          distribution: 'temurin'\n"
@@ -974,7 +799,7 @@ std::string SecurityRecommender::generate_workflow_steps(const std::string& lang
               "          format: 'HTML'\n"
               "          out: 'reports'\n";
     } else if (language == "Go") {
-        ss << "      - name: Set up Go\n"
+        ss << "- name: Set up Go\n"
               "        uses: actions/setup-go@v4\n"
               "        with:\n"
               "          go-version: '>=1.19.0'\n\n"
@@ -992,12 +817,10 @@ std::string SecurityRecommender::generate_workflow_steps(const std::string& lang
         std::string lowercase_lang = language;
         std::transform(lowercase_lang.begin(), lowercase_lang.end(), lowercase_lang.begin(), ::tolower);
         
-        ss << "      - name: Run general security checks\n"
+        ss << "- name: Run general security checks\n"
               "        run: echo \"Running security checks for " << language << "\"\n\n"
               "      - name: CodeQL Analysis\n"
-              "        uses: github/codeql-action/analyze@v2\n"
-              "        with:\n"
-              "          languages: " << lowercase_lang << "\n";
+              "        uses: github/codeql-action/analyze@v2\n";
     }
     
     return ss.str();

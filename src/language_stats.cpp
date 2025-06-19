@@ -4,7 +4,7 @@
 
 namespace singularity {
 
-void LanguageStats::add_file(const std::string& file_path, const std::string& language, size_t size) {
+void LanguageStats::add_file(const std::string& language, size_t size) {
     if (language.empty()) {
         return;
     }
@@ -41,11 +41,6 @@ std::vector<std::string> LanguageStats::get_languages() const {
     });
 
     return languages;
-}
-
-std::vector<std::string> LanguageStats::get_files_for_language(const std::string& language) const {
-    // Return empty vector as files are no longer tracked individually
-    return std::vector<std::string>{};
 }
 
 size_t LanguageStats::get_total_size() const {
