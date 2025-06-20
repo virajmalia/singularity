@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-This security analysis report provides an overview of potential security vulnerabilities and recommendations for the {{PROJECT_NAME}} project. The analysis was conducted on {{REPORT_DATE}} and covers common security concerns across all detected languages and frameworks.
+This security analysis report provides an overview of potential security vulnerabilities and recommendations for the {{PROJECT_NAME}} project. The analysis was conducted on {{REPORT_DATE}} and covers common security concerns for C, C++, and Python code in your repository.
 
 ## Languages Detected
 
@@ -16,31 +16,65 @@ This security analysis report provides an overview of potential security vulnera
 
 ### Static Code Analysis
 
+This section outlines static analysis tools recommended for your codebase based on the languages detected.
+
 {{#LANGUAGES}}
 #### {{LANGUAGE_NAME}} Components
-
+{{#IS_C}}
 - **Recommended Static Analysis Tools**:
   {{STATIC_ANALYSIS_TOOLS}}
 
 - **Configuration Recommendations**:
   {{STATIC_ANALYSIS_CONFIG}}
+{{/IS_C}}
+{{#IS_CPP}}
+- **Recommended Static Analysis Tools**:
+  {{STATIC_ANALYSIS_TOOLS}}
 
+- **Configuration Recommendations**:
+  {{STATIC_ANALYSIS_CONFIG}}
+{{/IS_CPP}}
+{{#IS_PYTHON}}
+- **Recommended Static Analysis Tools**:
+  {{STATIC_ANALYSIS_TOOLS}}
+
+- **Configuration Recommendations**:
+  {{STATIC_ANALYSIS_CONFIG}}
+{{/IS_PYTHON}}
 {{/LANGUAGES}}
 
 ### Dependency Vulnerability (CVE) Scanning
 
+This section provides recommendations for scanning your project's dependencies for known vulnerabilities.
+
 {{#LANGUAGES}}
 #### {{LANGUAGE_NAME}} Dependencies
-
+{{#IS_C}}
 - **Recommended CVE Scanners**:
   {{CVE_SCANNERS}}
 
 - **Integration Methods**:
   {{CVE_INTEGRATION}}
+{{/IS_C}}
+{{#IS_CPP}}
+- **Recommended CVE Scanners**:
+  {{CVE_SCANNERS}}
 
+- **Integration Methods**:
+  {{CVE_INTEGRATION}}
+{{/IS_CPP}}
+{{#IS_PYTHON}}
+- **Recommended CVE Scanners**:
+  {{CVE_SCANNERS}}
+
+- **Integration Methods**:
+  {{CVE_INTEGRATION}}
+{{/IS_PYTHON}}
 {{/LANGUAGES}}
 
 ### Secret Detection
+
+Secret detection tools help you identify accidentally committed secrets like API keys, tokens, and passwords in your codebase.
 
 - **Recommended Tools**:
   {{SECRET_DETECTION_TOOLS}}
@@ -50,18 +84,36 @@ This security analysis report provides an overview of potential security vulnera
 
 ### SAST (Static Application Security Testing)
 
+This section outlines SAST tools that can identify security vulnerabilities specific to your project's languages.
+
 {{#LANGUAGES}}
 #### {{LANGUAGE_NAME}} SAST
-
+{{#IS_C}}
 - **Recommended Tools**:
   {{SAST_TOOLS}}
 
 - **Integration Strategy**:
   {{SAST_INTEGRATION}}
+{{/IS_C}}
+{{#IS_CPP}}
+- **Recommended Tools**:
+  {{SAST_TOOLS}}
 
+- **Integration Strategy**:
+  {{SAST_INTEGRATION}}
+{{/IS_CPP}}
+{{#IS_PYTHON}}
+- **Recommended Tools**:
+  {{SAST_TOOLS}}
+
+- **Integration Strategy**:
+  {{SAST_INTEGRATION}}
+{{/IS_PYTHON}}
 {{/LANGUAGES}}
 
 ### DAST (Dynamic Application Security Testing)
+
+DAST tools can identify security issues by testing running applications, simulating attacks against your deployed software.
 
 - **Recommended Tools**:
   {{DAST_TOOLS}}
@@ -71,57 +123,71 @@ This security analysis report provides an overview of potential security vulnera
 
 ### Security Linting
 
+These linting tools help identify security issues in your code during development, enabling early detection of vulnerabilities.
+
 {{#LANGUAGES}}
 #### {{LANGUAGE_NAME}} Security Linting
-
+{{#IS_C}}
 - **Recommended Linters**:
   {{SECURITY_LINTERS}}
 
 - **Configuration Options**:
   {{LINTER_CONFIG}}
+{{/IS_C}}
+{{#IS_CPP}}
+- **Recommended Linters**:
+  {{SECURITY_LINTERS}}
 
+- **Configuration Options**:
+  {{LINTER_CONFIG}}
+{{/IS_CPP}}
+{{#IS_PYTHON}}
+- **Recommended Linters**:
+  {{SECURITY_LINTERS}}
+
+- **Configuration Options**:
+  {{LINTER_CONFIG}}
+{{/IS_PYTHON}}
 {{/LANGUAGES}}
-
-### Container Security Scanning
-
-- **Recommended Tools**:
-  {{CONTAINER_SCANNING_TOOLS}}
-
-- **Integration Methods**:
-  {{CONTAINER_SCANNING_METHODS}}
 
 ### Code Quality Analysis
 
+Maintaining high code quality is essential for security. These tools help ensure your codebase follows best practices.
+
 {{#LANGUAGES}}
 #### {{LANGUAGE_NAME}} Code Quality
-
+{{#IS_C}}
 - **Recommended Tools**:
   {{CODE_QUALITY_TOOLS}}
 
 - **Metrics to Monitor**:
   {{CODE_QUALITY_METRICS}}
+{{/IS_C}}
+{{#IS_CPP}}
+- **Recommended Tools**:
+  {{CODE_QUALITY_TOOLS}}
 
+- **Metrics to Monitor**:
+  {{CODE_QUALITY_METRICS}}
+{{/IS_CPP}}
+{{#IS_PYTHON}}
+- **Recommended Tools**:
+  {{CODE_QUALITY_TOOLS}}
+
+- **Metrics to Monitor**:
+  {{CODE_QUALITY_METRICS}}
+{{/IS_PYTHON}}
 {{/LANGUAGES}}
 
 ### License Compliance
+
+These tools help ensure your project's dependencies comply with your organization's licensing policies.
 
 - **Recommended Tools**:
   {{LICENSE_COMPLIANCE_TOOLS}}
 
 - **Policy Recommendations**:
   {{LICENSE_POLICY}}
-
-## CI/CD Security Integration
-
-### GitHub Actions Workflow
-
-```yaml
-{{GITHUB_ACTIONS_WORKFLOW}}
-```
-
-### Other CI/CD Platforms
-
-{{OTHER_CICD_INTEGRATION}}
 
 ## Security Monitoring Recommendations
 

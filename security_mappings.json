@@ -1,539 +1,222 @@
 {
-  "language_mappings": {
-    "C": {
-      "static_analysis_tools": [
-        "Clang Static Analyzer",
-        "Cppcheck",
-        "Infer",
-        "IKOS",
-        "Frama-C"
-      ],
-      "static_analysis_config": "Enable all security checkers in Clang Static Analyzer. Focus on memory safety, buffer overflows, and undefined behavior.",
-      "cve_scanners": [
-        "OSS-Fuzz",
-        "Dependabot",
-        "OWASP Dependency-Check",
-        "OSV-Scanner"
-      ],
-      "cve_integration": "Use OWASP Dependency-Check to scan third-party libraries. Configure Dependabot for GitHub repositories.",
-      "sast_tools": [
-        "CodeQL",
-        "FlawFinder",
-        "Semgrep",
-        "IKOS"
-      ],
-      "sast_integration": "Configure CodeQL with C language pack focusing on memory safety issues, buffer overflows, and format string vulnerabilities.",
-      "security_linters": [
-        "FlawFinder",
-        "Sparse",
-        "Splint",
-        "clang-tidy"
-      ],
-      "linter_config": "Configure FlawFinder with higher sensitivity for security issues. Enable all security warnings in compiler flags.",
-      "code_quality_tools": [
-        "SonarQube Community Edition",
-        "Cppcheck",
-        "RATS",
-        "Vera++"
-      ],
-      "code_quality_metrics": "Cyclomatic complexity < 15, comment ratio > 20%, function length < 50 lines"
+  "scan_types": {
+    "static_analysis": {
+      "tools": {
+        "Clang Static Analyzer": {
+          "supported_languages": ["C", "C++"],
+          "configuration": "Enable all security checkers in Clang Static Analyzer. Focus on memory safety, buffer overflows, and undefined behavior."
+        },
+        "Cppcheck": {
+          "supported_languages": ["C", "C++"],
+          "configuration": "Enable all checks with focus on security-related issues."
+        },
+        "Bandit": {
+          "supported_languages": ["Python"],
+          "configuration": "Focus on input validation, SQL injection, and command injection vulnerabilities."
+        },
+        "Pylint": {
+          "supported_languages": ["Python"],
+          "configuration": "Enable security plugins and checks."
+        }
+      }
     },
-    "C++": {
-      "static_analysis_tools": [
-        "Clang Static Analyzer",
-        "Cppcheck",
-        "IKOS",
-        "Infer",
-        "SonarQube Community C++ plugin"
-      ],
-      "static_analysis_config": "Enable all checkers in Clang Static Analyzer, focus on security-related checks. Configure memory leak detection and undefined behavior detection.",
-      "cve_scanners": [
-        "OSS-Fuzz",
-        "Dependabot",
-        "OWASP Dependency-Check",
-        "OSV-Scanner"
-      ],
-      "cve_integration": "Integrate OWASP Dependency-Check into CI/CD pipeline to scan third-party libraries. Configure Dependabot alerts for GitHub repositories.",
-      "sast_tools": [
-        "CodeQL",
-        "Semgrep",
-        "FlawFinder"
-      ],
-      "sast_integration": "Configure CodeQL with C++ language pack focusing on memory safety, pointer arithmetic, and buffer overflow vulnerabilities.",
-      "security_linters": [
-        "clang-tidy",
-        "FlawFinder",
-        "CppLint"
-      ],
-      "linter_config": "Configure clang-tidy with -checks=bugprone-*,cert-*,clang-analyzer-security.*,performance-*",
-      "code_quality_tools": [
-        "SonarQube Community Edition",
-        "IKOS",
-        "Infer"
-      ],
-      "code_quality_metrics": "Cyclomatic complexity < 15, comment ratio > 20%, function length < 50 lines"
+    "cve_scanning": {
+      "tools": {
+        "OWASP Dependency-Check": {
+          "supported_languages": ["C", "C++"],
+          "configuration": "Configure to scan C/C++ dependencies with full reporting."
+        },
+        "Safety": {
+          "supported_languages": ["Python"],
+          "configuration": "Run with full vulnerability database."
+        },
+        "pip-audit": {
+          "supported_languages": ["Python"],
+          "configuration": "Configure to check all dependencies recursively."
+        },
+        "Dependabot": {
+          "supported_languages": ["C", "C++", "Python"],
+          "configuration": "Configure with security advisories and version updates for all supported package ecosystems."
+        }
+      }
     },
-    "Python": {
-      "static_analysis_tools": [
-        "Bandit",
-        "Pylint",
-        "Pysa",
-        "Mypy",
-        "SonarQube Community Python plugin"
-      ],
-      "static_analysis_config": "Focus on input validation, SQL injection, and command injection vulnerabilities. Enable type checking with mypy.",
-      "cve_scanners": [
-        "Safety",
-        "Dependabot",
-        "pip-audit",
-        "PyUp"
-      ],
-      "cve_integration": "Run Safety check on requirements.txt in CI/CD pipeline. Configure PyUp for automatic dependency updates.",
-      "sast_tools": [
-        "CodeQL",
-        "Semgrep",
-        "Bandit"
-      ],
-      "sast_integration": "Configure CodeQL with Python language pack focusing on SQL injection, XSS, and path traversal vulnerabilities.",
-      "security_linters": [
-        "Bandit",
-        "Pylint security plugins",
-        "Semgrep"
-      ],
-      "linter_config": "Configure Bandit to scan for common security issues in Python code. Enable all security plugins in Pylint.",
-      "code_quality_tools": [
-        "SonarQube",
-        "Radon",
-        "Black"
-      ],
-      "code_quality_metrics": "Cyclomatic complexity < 10, maintainability index > 65, function length < 40 lines"
+    "sast": {
+      "tools": {
+        "CodeQL": {
+          "supported_languages": ["C", "C++", "Python"],
+          "configuration": "Configure with appropriate language packs focusing on language-specific vulnerabilities."
+        },
+        "Semgrep": {
+          "supported_languages": ["C", "C++", "Python"],
+          "configuration": "Use language-specific rule sets to detect security issues."
+        },
+        "Fortify": {
+          "supported_languages": ["C", "C++", "Python"],
+          "configuration": "Configure for comprehensive code analysis."
+        }
+      }
     },
-    "JavaScript": {
-      "static_analysis_tools": [
-        "ESLint",
-        "JSHint",
-        "SonarQube JavaScript plugin",
-        "Flow"
-      ],
-      "static_analysis_config": "Focus on prototype pollution, XSS prevention, and secure coding patterns. Enable security-related ESLint plugins.",
-      "cve_scanners": [
-        "npm audit",
-        "Snyk",
-        "Dependabot",
-        "RetireJS"
-      ],
-      "cve_integration": "Run npm audit in CI/CD pipeline. Configure Snyk to scan package.json/package-lock.json files.",
-      "sast_tools": [
-        "CodeQL",
-        "NodeJsScan",
-        "Checkmarx"
-      ],
-      "sast_integration": "Configure CodeQL with JavaScript language pack focusing on XSS, prototype pollution, and insecure deserialization.",
-      "security_linters": [
-        "ESLint with eslint-plugin-security",
-        "Semgrep",
-        "SonarJS"
-      ],
-      "linter_config": "Configure ESLint with eslint-plugin-security and eslint-plugin-node for security-focused linting.",
-      "code_quality_tools": [
-        "SonarQube",
-        "Plato",
-        "Prettier"
-      ],
-      "code_quality_metrics": "Cyclomatic complexity < 10, maintainability index > 70, function length < 30 lines"
+    "security_linting": {
+      "tools": {
+        "FlawFinder": {
+          "supported_languages": ["C", "C++"],
+          "configuration": "Configure with higher sensitivity for security issues."
+        },
+        "clang-tidy": {
+          "supported_languages": ["C", "C++"],
+          "configuration": "Configure with -checks=bugprone-*,cert-*,clang-analyzer-security.*,performance-*"
+        },
+        "CppLint": {
+          "supported_languages": ["C++"],
+          "configuration": "Check for Google style guide compliance and security issues."
+        },
+        "Bandit": {
+          "supported_languages": ["Python"],
+          "configuration": "Scan for common security issues in Python code."
+        },
+        "Pylint security plugins": {
+          "supported_languages": ["Python"],
+          "configuration": "Enable all security plugins in Pylint."
+        }
+      }
     },
-    "Java": {
-      "static_analysis_tools": [
-        "SpotBugs with Find Security Bugs",
-        "PMD",
-        "SonarQube Java plugin",
-        "Error Prone"
-      ],
-      "static_analysis_config": "Enable Find Security Bugs plugin for SpotBugs. Configure PMD with security-focused ruleset.",
-      "cve_scanners": [
-        "OWASP Dependency-Check",
-        "Snyk",
-        "Dependabot",
-        "Trivy"
-      ],
-      "cve_integration": "Run OWASP Dependency-Check against Maven/Gradle dependencies in CI/CD pipeline.",
-      "sast_tools": [
-        "CodeQL",
-        "Fortify",
-        "Checkmarx"
-      ],
-      "sast_integration": "Configure CodeQL with Java language pack focusing on OWASP Top 10 vulnerabilities.",
-      "security_linters": [
-        "SpotBugs with Find Security Bugs",
-        "PMD",
-        "Checkstyle with security checks"
-      ],
-      "linter_config": "Configure SpotBugs with Find Security Bugs plugin. Enable PMD's security ruleset.",
-      "code_quality_tools": [
-        "SonarQube",
-        "JaCoCo",
-        "Checkstyle"
-      ],
-      "code_quality_metrics": "Test coverage > 80%, cyclomatic complexity < 12, code duplication < 5%"
-    },
-    "Go": {
-      "static_analysis_tools": [
-        "gosec",
-        "staticcheck",
-        "golangci-lint",
-        "go vet",
-        "SonarQube Go plugin"
-      ],
-      "static_analysis_config": "Run gosec with all rules enabled. Configure golangci-lint with security-focused linters.",
-      "cve_scanners": [
-        "govulncheck",
-        "Nancy",
-        "Snyk",
-        "Dependabot"
-      ],
-      "cve_integration": "Run govulncheck in CI/CD pipeline to check for vulnerable dependencies.",
-      "sast_tools": [
-        "CodeQL",
-        "gosec",
-        "Checkmarx"
-      ],
-      "sast_integration": "Configure CodeQL with Go language pack focusing on security issues like SQL injection and template injection.",
-      "security_linters": [
-        "gosec",
-        "Semgrep",
-        "golangci-lint with security linters"
-      ],
-      "linter_config": "Configure gosec with all security rules enabled. Use golangci-lint with security-focused linters.",
-      "code_quality_tools": [
-        "SonarQube",
-        "gocyclo",
-        "golangci-lint"
-      ],
-      "code_quality_metrics": "Test coverage > 80%, cyclomatic complexity < 15, function length < 60 lines"
-    },
-    "Fortran": {
-      "static_analysis_tools": [
-        "Flint",
-        "FORCHECK",
-        "Fpt",
-        "CodeQL"
-      ],
-      "static_analysis_config": "Enable memory safety checks and array bounds checking in compiler flags.",
-      "cve_scanners": [
-        "OWASP Dependency-Check (limited support)",
-        "Manual vulnerability tracking"
-      ],
-      "cve_integration": "Manual review of dependencies and regular checks against vulnerability databases.",
-      "sast_tools": [
-        "Custom CodeQL queries",
-        "Coverity Scan"
-      ],
-      "sast_integration": "Configure Coverity Scan for automated analysis of Fortran code.",
-      "security_linters": [
-        "Fortran Lint",
-        "fpt",
-        "Custom linting scripts"
-      ],
-      "linter_config": "Enable all compiler warnings. Configure Fortran Lint for strict checking.",
-      "code_quality_tools": [
-        "FORTCHECK",
-        "Camfort",
-        "Custom metrics scripts"
-      ],
-      "code_quality_metrics": "Procedures < 100 lines, minimal GOTO usage, proper variable initialization"
-    },
-    "Jupyter Notebook": {
-      "static_analysis_tools": [
-        "nbQA",
-        "nbsafety",
-        "Bandit (via nbQA)"
-      ],
-      "static_analysis_config": "Use nbQA to run Bandit, Flake8, and other Python linters on code cells within Jupyter Notebooks.",
-      "cve_scanners": [
-        "Safety (via nbQA)",
-        "Dependabot"
-      ],
-      "cve_integration": "Use nbQA to analyze notebook dependencies and scan for vulnerabilities using Safety.",
-      "sast_tools": [
-        "CodeQL with Python rules",
-        "Semgrep"
-      ],
-      "sast_integration": "Apply Python-focused CodeQL rules to notebook code cells.",
-      "security_linters": [
-        "nbQA with Pylint",
-        "nbsafety"
-      ],
-      "linter_config": "Configure nbQA to run Pylint with security plugins on notebook code cells.",
-      "code_quality_tools": [
-        "nbQA",
-        "Black (via nbQA)",
-        "isort (via nbQA)"
-      ],
-      "code_quality_metrics": "Run standard Python code quality metrics through nbQA integration"
-    },
-    "Assembly": {
-      "static_analysis_tools": [
-        "Ghidra",
-        "IDA Free",
-        "Binary Ninja"
-      ],
-      "static_analysis_config": "Use Ghidra's analysis capabilities to identify security issues in assembly code.",
-      "cve_scanners": [
-        "Manual code review",
-        "Dependabot (for integrated projects)"
-      ],
-      "cve_integration": "Manual review of assembly code for known vulnerability patterns.",
-      "sast_tools": [
-        "CodeQL (limited support)",
-        "Ghidra"
-      ],
-      "sast_integration": "Use Ghidra's built-in analyzers to detect common assembly-level security issues.",
-      "security_linters": [
-        "Custom linting rules",
-        "Manual review"
-      ],
-      "linter_config": "Define custom linting rules for assembly code that catches common security anti-patterns.",
-      "code_quality_tools": [
-        "Ghidra",
-        "Manual review"
-      ],
-      "code_quality_metrics": "Review for proper use of secure coding practices in assembly"
-    },
-    "Makefile": {
-      "static_analysis_tools": [
-        "checkmake",
-        "ShellCheck (for shell commands)"
-      ],
-      "static_analysis_config": "Run checkmake to verify Makefile correctness. Use ShellCheck for embedded shell commands.",
-      "cve_scanners": [
-        "Manual inspection",
-        "ShellCheck (for shell commands)"
-      ],
-      "cve_integration": "Manual inspection for insecure build patterns.",
-      "sast_tools": [
-        "ShellCheck (for shell commands)",
-        "Semgrep (with custom rules)"
-      ],
-      "sast_integration": "Use Semgrep with custom rules to identify insecure patterns in Makefiles.",
-      "security_linters": [
-        "checkmake",
-        "ShellCheck"
-      ],
-      "linter_config": "Configure checkmake with security-focused rules.",
-      "code_quality_tools": [
-        "checkmake"
-      ],
-      "code_quality_metrics": "Check for proper variable quoting, avoid unsafe shell constructs"
-    },
-    "Shell": {
-      "static_analysis_tools": [
-        "ShellCheck",
-        "Bash ShellSpec",
-        "Bats-core"
-      ],
-      "static_analysis_config": "Use ShellCheck with all checks enabled to identify security issues in shell scripts.",
-      "cve_scanners": [
-        "ShellCheck",
-        "Manual review"
-      ],
-      "cve_integration": "Run ShellCheck in CI/CD pipeline to detect insecure patterns.",
-      "sast_tools": [
-        "ShellCheck",
-        "Semgrep"
-      ],
-      "sast_integration": "Use Semgrep with shell-specific rules to detect security issues.",
-      "security_linters": [
-        "ShellCheck",
-        "bashate"
-      ],
-      "linter_config": "Enable all security warnings in ShellCheck.",
-      "code_quality_tools": [
-        "ShellCheck",
-        "bashate",
-        "shfmt"
-      ],
-      "code_quality_metrics": "Ensure proper quoting, avoid eval, use shellspec for testing"
-    },
-    "Dockerfile": {
-      "static_analysis_tools": [
-        "hadolint",
-        "Trivy",
-        "Dockle"
-      ],
-      "static_analysis_config": "Run hadolint to identify security and best practices issues in Dockerfiles.",
-      "cve_scanners": [
-        "Trivy",
-        "Clair",
-        "Snyk Container"
-      ],
-      "cve_integration": "Scan built images with Trivy to detect OS and package vulnerabilities.",
-      "sast_tools": [
-        "hadolint",
-        "Semgrep"
-      ],
-      "sast_integration": "Use Semgrep with Dockerfile-specific rules.",
-      "security_linters": [
-        "hadolint",
-        "Dockle"
-      ],
-      "linter_config": "Configure hadolint with security-focused rules.",
-      "code_quality_tools": [
-        "hadolint",
-        "Dockerfile lint"
-      ],
-      "code_quality_metrics": "Check for proper layer management, minimize image size, avoid running as root"
-    },
-    "CMake": {
-      "static_analysis_tools": [
-        "cmake-lint",
-        "cmake-format"
-      ],
-      "static_analysis_config": "Use cmake-lint to identify issues in CMake files.",
-      "cve_scanners": [
-        "Manual review"
-      ],
-      "cve_integration": "Manual review of CMake security settings.",
-      "sast_tools": [
-        "Semgrep (with custom rules)"
-      ],
-      "sast_integration": "Use Semgrep with custom rules for CMake.",
-      "security_linters": [
-        "cmake-lint",
-        "cmakelint"
-      ],
-      "linter_config": "Configure cmake-lint with security-focused rules.",
-      "code_quality_tools": [
-        "cmake-lint",
-        "cmake-format"
-      ],
-      "code_quality_metrics": "Check for proper variable handling, avoid insecure defaults"
-    },
-    "Starlark": {
-      "static_analysis_tools": [
-        "Buildifier"
-      ],
-      "static_analysis_config": "Use Buildifier to lint and format Starlark files.",
-      "cve_scanners": [
-        "Manual review"
-      ],
-      "cve_integration": "Manual review for insecure patterns.",
-      "sast_tools": [
-        "Semgrep (with custom rules)"
-      ],
-      "sast_integration": "Use Semgrep with custom rules for Starlark.",
-      "security_linters": [
-        "Buildifier"
-      ],
-      "linter_config": "Configure Buildifier with security-focused rules.",
-      "code_quality_tools": [
-        "Buildifier"
-      ],
-      "code_quality_metrics": "Follow Bazel best practices for secure build configuration"
-    },
-    "G-code": {
-      "static_analysis_tools": [
-        "ncval",
-        "Manual review"
-      ],
-      "static_analysis_config": "Use specialized G-code validators to check for machine safety issues.",
-      "cve_scanners": [
-        "Manual review"
-      ],
-      "cve_integration": "Manual review for safety issues in machine control code.",
-      "sast_tools": [
-        "Manual review"
-      ],
-      "sast_integration": "Manual review with specific focus on machine safety.",
-      "security_linters": [
-        "ncval"
-      ],
-      "linter_config": "Focus on validating safe machine operation commands.",
-      "code_quality_tools": [
-        "ncval",
-        "G-code beautifiers"
-      ],
-      "code_quality_metrics": "Verify machine safety limits, check for proper tool paths"
-    },
-    "Linker Script": {
-      "static_analysis_tools": [
-        "Manual review",
-        "Custom validation scripts"
-      ],
-      "static_analysis_config": "Manually review linker scripts for security issues.",
-      "cve_scanners": [
-        "Manual review"
-      ],
-      "cve_integration": "Manual review for memory layout vulnerabilities.",
-      "sast_tools": [
-        "Manual review"
-      ],
-      "sast_integration": "Manually verify memory layout and security sections.",
-      "security_linters": [
-        "Custom scripts"
-      ],
-      "linter_config": "Check for proper stack and heap configurations, verify security sections.",
-      "code_quality_tools": [
-        "Manual review"
-      ],
-      "code_quality_metrics": "Verify proper memory layout for security, check proper section attributes"
+    "code_quality": {
+      "tools": {
+        "Cppcheck": {
+          "supported_languages": ["C", "C++"],
+          "configuration": "Enable all checks with focus on code quality issues."
+        },
+        "Radon": {
+          "supported_languages": ["Python"],
+          "configuration": "Compute code metrics and complexity."
+        },
+        "Black": {
+          "supported_languages": ["Python"],
+          "configuration": "Format code following a consistent style."
+        },
+        "Lizard": {
+          "supported_languages": ["C", "C++", "Python"],
+          "configuration": "Analyze cyclomatic complexity in code base. Configure to fail builds with high complexity scores."
+        },
+        "Complexity Checker": {
+          "supported_languages": ["C", "C++"],
+          "configuration": "Measure and report on code complexity and quality metrics."
+        }
+      }
     }
   },
   "general_recommendations": {
-    "secret_detection_tools": [
-      "GitLeaks",
-      "Detect-secrets",
-      "git-secrets",
-      "Trufflehog"
-    ],
-    "secret_detection_strategy": "Run GitLeaks as a pre-commit hook and in CI/CD pipeline. Configure to detect API keys, passwords, tokens, and cryptographic keys.",
-    "dast_tools": [
-      "OWASP ZAP",
-      "Nuclei",
-      "Nikto",
-      "Skipfish"
-    ],
-    "dast_strategy": "Schedule weekly OWASP ZAP scans against development environments. Run baseline scans for each deployment.",
-    "container_scanning_tools": [
-      "Trivy",
-      "Clair",
-      "Docker Bench for Security",
-      "Grype"
-    ],
-    "container_scanning_methods": "Integrate Trivy into CI/CD pipeline to scan container images before deployment. Configure with fail-on-critical option.",
-    "license_compliance_tools": [
-      "licensechecker",
-      "scancode-toolkit",
-      "License Finder",
-      "REUSE Tool"
-    ],
-    "license_policy": "Maintain a whitelist of approved licenses. Configure CI/CD pipeline to fail builds with unauthorized licenses.",
-    "log_analysis_tools": [
-      "ELK Stack (Basic)",
-      "Graylog",
-      "Loki",
-      "OpenSearch"
-    ],
-    "runtime_protection": [
-      "AppArmor",
-      "SELinux",
-      "Falco",
-      "seccomp"
-    ],
-    "anomaly_detection": [
-      "Prometheus with alerting",
-      "Grafana",
-      "OpenTelemetry",
-      "Wazuh"
-    ],
+    "secret_detection": {
+      "tools": {
+        "GitLeaks": {
+          "description": "Audit git repos for secrets and keys",
+          "configuration": "Run as a pre-commit hook and in CI/CD pipeline."
+        },
+        "Detect-secrets": {
+          "description": "Detect high entropy strings in source code",
+          "configuration": "Use for detecting secrets in source code repositories."
+        },
+        "git-secrets": {
+          "description": "Prevents committing secrets and credentials to git repositories",
+          "configuration": "Configure as pre-commit hook."
+        },
+        "Trufflehog": {
+          "description": "Find secrets in git repositories",
+          "configuration": "Detect API keys, passwords, tokens, and cryptographic keys."
+        }
+      },
+      "strategy": "Run GitLeaks as a pre-commit hook and in CI/CD pipeline. Configure to detect API keys, passwords, tokens, and cryptographic keys."
+    },
+    "dast": {
+      "tools": {
+        "OWASP ZAP": {
+          "description": "Web application security scanner",
+          "configuration": "Schedule weekly scans against development environments."
+        },
+        "Nuclei": {
+          "description": "Template-based vulnerability scanner",
+          "configuration": "Run with security templates for web applications."
+        },
+        "Nikto": {
+          "description": "Web server scanner",
+          "configuration": "Scan for dangerous files and outdated software."
+        },
+        "Skipfish": {
+          "description": "Active web application security reconnaissance tool",
+          "configuration": "Run automated security checks on web applications."
+        }
+      },
+      "strategy": "Schedule weekly OWASP ZAP scans against development environments. Run baseline scans for each deployment."
+    },
+    "license_compliance": {
+      "tools": {
+        "licensechecker": {
+          "description": "Scan for license information",
+          "configuration": "Run in CI/CD pipeline to check licenses."
+        },
+        "scancode-toolkit": {
+          "description": "Detect licenses and copyrights",
+          "configuration": "Use for comprehensive license scanning."
+        },
+        "License Finder": {
+          "description": "Find and manage dependency licenses",
+          "configuration": "Integrate with dependency management system."
+        },
+        "REUSE Tool": {
+          "description": "Make licensing easier",
+          "configuration": "Check compliance with REUSE Specification."
+        }
+      },
+      "policy": "Maintain a whitelist of approved licenses. Configure CI/CD pipeline to fail builds with unauthorized licenses."
+    },
+    "log_analysis": {
+      "tools": {
+        "ELK Stack (Basic)": {
+          "description": "Elasticsearch, Logstash, and Kibana for log analysis",
+          "configuration": "Set up centralized logging and analysis."
+        },
+        "Graylog": {
+          "description": "Log management platform",
+          "configuration": "Configure for log collection and analysis."
+        },
+        "Loki": {
+          "description": "Log aggregation system",
+          "configuration": "Use with Prometheus for log monitoring."
+        },
+        "OpenSearch": {
+          "description": "Open source search and analytics suite",
+          "configuration": "Set up for distributed log analysis."
+        }
+      }
+    },
+    "runtime_protection": {
+      "tools": {
+        "AppArmor": {
+          "description": "Linux security module",
+          "configuration": "Configure profiles for application confinement."
+        },
+        "SELinux": {
+          "description": "Security-Enhanced Linux",
+          "configuration": "Enforce mandatory access controls."
+        },
+        "Falco": {
+          "description": "Container runtime security",
+          "configuration": "Monitor container behavior and detect anomalies."
+        },
+        "seccomp": {
+          "description": "Secure computing mode",
+          "configuration": "Restrict system calls available to processes."
+        }
+      }
+    },
     "priority_order": [
       "Fix vulnerabilities with CVEs",
       "Secret scanning integration",
       "SAST integration",
       "Dependency scanning",
-      "Static code analysis"
+      "Automated dependency updates",
+      "Static code analysis",
+      "Cyclomatic complexity analysis"
     ]
-  },
-  "cicd_templates": {
-    "github_actions": "name: Security Scan\n\non:\n  push:\n    branches: [ main, master, develop ]\n  pull_request:\n    branches: [ main, master ]\n  schedule:\n    - cron: '0 0 * * 0'\n\njobs:\n  {{#LANGUAGES}}\n  {{LANGUAGE_NAME}}-security-scan:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v3\n        with:\n          fetch-depth: 0\n      {{LANGUAGE_SPECIFIC_STEPS}}\n  {{/LANGUAGES}}\n\n  secret-scanning:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v3\n        with:\n          fetch-depth: 0\n      - name: TruffleHog OSS\n        uses: trufflesecurity/trufflehog@v3.16.0\n        with:\n          path: ./\n          base: ${{ github.event.repository.default_branch }}\n          head: HEAD\n          extra_args: --debug --only-verified\n\n  container-scan:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v3\n      - name: Build image\n        run: docker build -t ${{ github.repository }}:${{ github.sha }} .\n      - name: Scan image\n        uses: aquasecurity/trivy-action@master\n        with:\n          image-ref: ${{ github.repository }}:${{ github.sha }}\n          format: 'sarif'\n          output: 'trivy-results.sarif'\n          severity: 'CRITICAL,HIGH'\n\n  dependency-review:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Checkout\n        uses: actions/checkout@v3\n      - name: Dependency Review\n        uses: actions/dependency-review-action@v2"
   }
 }
