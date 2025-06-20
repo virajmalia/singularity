@@ -14,8 +14,8 @@ public:
         }
         
         singularity::LanguageStats stats;
-        stats.add_file("mock_file.cpp", "C++", 1000);
-        stats.add_file("mock_file.py", "Python", 500);
+        stats.add_file("C++", 1000);
+        stats.add_file("Python", 500);
         return stats;
     }
     
@@ -83,28 +83,27 @@ TEST(RepoAnalyzerTest, ProgressCallback) {
     EXPECT_FALSE(callback_called);
 }
 
-TEST(RepoAnalyzerFactoryTest, CreateLocalAnalyzer) {
-    auto analyzer = singularity::RepoAnalyzerFactory::create_local_analyzer("/tmp");
-    EXPECT_NE(analyzer, nullptr);
-    EXPECT_NE(dynamic_cast<singularity::LocalRepoAnalyzer*>(analyzer.get()), nullptr);
-}
-
-TEST(RepoAnalyzerFactoryTest, CreateRemoteAnalyzerNonGithub) {
-    auto analyzer = singularity::RepoAnalyzerFactory::create_remote_analyzer("https://gitlab.com/user/repo.git");
-    EXPECT_NE(analyzer, nullptr);
-    EXPECT_NE(dynamic_cast<singularity::RemoteRepoAnalyzer*>(analyzer.get()), nullptr);
-}
-
-TEST(RepoAnalyzerFactoryTest, CreateRemoteAnalyzerGithub) {
-    auto analyzer = singularity::RepoAnalyzerFactory::create_remote_analyzer("https://github.com/user/repo.git", true);
+TEST(RepoAnalyzerFactoryTest, CreateAnalyzerGithub) {
+    // The factory should recognize GitHub URLs and create a GitHubApiAnalyzer
+    auto analyzer = singularity::RepoAnalyzerFactory::create_analyzer("https://github.com/user/repo.git");
     EXPECT_NE(analyzer, nullptr);
     EXPECT_NE(dynamic_cast<singularity::GitHubApiAnalyzer*>(analyzer.get()), nullptr);
 }
 
-TEST(RepoAnalyzerFactoryTest, CreateRemoteAnalyzerGithubNoApi) {
-    auto analyzer = singularity::RepoAnalyzerFactory::create_remote_analyzer("https://github.com/user/repo.git", false);
-    EXPECT_NE(analyzer, nullptr);
-    EXPECT_NE(dynamic_cast<singularity::RemoteRepoAnalyzer*>(analyzer.get()), nullptr);
+TEST(RepoAnalyzerFactoryTest, CreateAnalyzerUnsupported) {
+    // For unsupported repository types, the factory should throw an exception
+    EXPECT_THROW(
+        singularity::RepoAnalyzerFactory::create_analyzer("https://gitlab.com/user/repo.git"),
+        std::runtime_error
+    );
+}
+
+TEST(RepoAnalyzerFactoryTest, CreateAnalyzerInvalidURL) {
+    // For invalid URLs, the factory should throw an exception
+    EXPECT_THROW(
+        singularity::RepoAnalyzerFactory::create_analyzer("not-a-url"),
+        std::runtime_error
+    );
 }
 
 } // namespace

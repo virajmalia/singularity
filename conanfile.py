@@ -11,6 +11,8 @@ class SingularityConan(ConanFile):
         self.requires("libcurl/8.12.1")
         self.requires("libgit2/1.8.4")
         self.requires("gtest/1.16.0")
+        self.requires("fmt/10.0.0")
+        self.requires("nlohmann_json/3.11.3")
     
     def configure(self):
         # Use dynamic libraries

@@ -2,9 +2,8 @@ add_library(singularity_lib
     language_stats.cpp
     repo_analyzer.cpp
     analyzers.cpp
-    formatter.cpp
-    language_detector.cpp
     application.cpp
+    security_recommender.cpp
 )
 
 target_include_directories(singularity_lib 
@@ -16,11 +15,15 @@ target_include_directories(singularity_lib
 # Find dependencies
 find_package(CURL REQUIRED)
 find_package(libgit2 REQUIRED)
+find_package(fmt REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 target_link_libraries(singularity_lib 
     PUBLIC
         CURL::libcurl
         libgit2::libgit2
+        fmt::fmt
+        nlohmann_json::nlohmann_json
 )
 
 # Main executable

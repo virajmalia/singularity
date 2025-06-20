@@ -1,9 +1,8 @@
 add_executable(singularity_tests
     test_language_stats.cpp
-    test_language_detector.cpp
     test_repo_analyzer.cpp
-    test_formatter.cpp
     test_main.cpp
+    security_recommender_test.cpp
 )
 
 # Find GTest

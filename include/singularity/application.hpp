@@ -21,6 +21,8 @@
 #include <vector>
 #include <functional>
 
+#include "singularity/language_stats.hpp"
+
 namespace singularity {
 
 /**
@@ -67,6 +69,13 @@ private:
     bool analyze_repo();
 
     /**
+     * @brief Generate security report for the repository
+     * @param stats Language statistics from analysis
+     * @return True if report generation successful
+     */
+    bool generate_security_report(const LanguageStats& stats);
+
+    /**
      * @brief Progress callback function
      * @param percentage Progress percentage (0-100)
      * @param message Status message
@@ -74,9 +83,9 @@ private:
     void on_progress(int percentage, const std::string& message);
 
     std::string repo_url_;
-    std::string repo_path_;
-    bool use_api_{true};
     bool verbose_{false};
+    bool generate_report_{false};
+    std::string output_file_;
 };
 
 } // namespace singularity

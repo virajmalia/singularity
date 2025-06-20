@@ -1,0 +1,222 @@
+{
+  "scan_types": {
+    "static_analysis": {
+      "tools": {
+        "Clang Static Analyzer": {
+          "supported_languages": ["C", "C++"],
+          "configuration": "Enable all security checkers in Clang Static Analyzer. Focus on memory safety, buffer overflows, and undefined behavior."
+        },
+        "Cppcheck": {
+          "supported_languages": ["C", "C++"],
+          "configuration": "Enable all checks with focus on security-related issues."
+        },
+        "Bandit": {
+          "supported_languages": ["Python"],
+          "configuration": "Focus on input validation, SQL injection, and command injection vulnerabilities."
+        },
+        "Pylint": {
+          "supported_languages": ["Python"],
+          "configuration": "Enable security plugins and checks."
+        }
+      }
+    },
+    "cve_scanning": {
+      "tools": {
+        "OWASP Dependency-Check": {
+          "supported_languages": ["C", "C++"],
+          "configuration": "Configure to scan C/C++ dependencies with full reporting."
+        },
+        "Safety": {
+          "supported_languages": ["Python"],
+          "configuration": "Run with full vulnerability database."
+        },
+        "pip-audit": {
+          "supported_languages": ["Python"],
+          "configuration": "Configure to check all dependencies recursively."
+        },
+        "Dependabot": {
+          "supported_languages": ["C", "C++", "Python"],
+          "configuration": "Configure with security advisories and version updates for all supported package ecosystems."
+        }
+      }
+    },
+    "sast": {
+      "tools": {
+        "CodeQL": {
+          "supported_languages": ["C", "C++", "Python"],
+          "configuration": "Configure with appropriate language packs focusing on language-specific vulnerabilities."
+        },
+        "Semgrep": {
+          "supported_languages": ["C", "C++", "Python"],
+          "configuration": "Use language-specific rule sets to detect security issues."
+        },
+        "Fortify": {
+          "supported_languages": ["C", "C++", "Python"],
+          "configuration": "Configure for comprehensive code analysis."
+        }
+      }
+    },
+    "security_linting": {
+      "tools": {
+        "FlawFinder": {
+          "supported_languages": ["C", "C++"],
+          "configuration": "Configure with higher sensitivity for security issues."
+        },
+        "clang-tidy": {
+          "supported_languages": ["C", "C++"],
+          "configuration": "Configure with -checks=bugprone-*,cert-*,clang-analyzer-security.*,performance-*"
+        },
+        "CppLint": {
+          "supported_languages": ["C++"],
+          "configuration": "Check for Google style guide compliance and security issues."
+        },
+        "Bandit": {
+          "supported_languages": ["Python"],
+          "configuration": "Scan for common security issues in Python code."
+        },
+        "Pylint security plugins": {
+          "supported_languages": ["Python"],
+          "configuration": "Enable all security plugins in Pylint."
+        }
+      }
+    },
+    "code_quality": {
+      "tools": {
+        "Cppcheck": {
+          "supported_languages": ["C", "C++"],
+          "configuration": "Enable all checks with focus on code quality issues."
+        },
+        "Radon": {
+          "supported_languages": ["Python"],
+          "configuration": "Compute code metrics and complexity."
+        },
+        "Black": {
+          "supported_languages": ["Python"],
+          "configuration": "Format code following a consistent style."
+        },
+        "Lizard": {
+          "supported_languages": ["C", "C++", "Python"],
+          "configuration": "Analyze cyclomatic complexity in code base. Configure to fail builds with high complexity scores."
+        },
+        "Complexity Checker": {
+          "supported_languages": ["C", "C++"],
+          "configuration": "Measure and report on code complexity and quality metrics."
+        }
+      }
+    }
+  },
+  "general_recommendations": {
+    "secret_detection": {
+      "tools": {
+        "GitLeaks": {
+          "description": "Audit git repos for secrets and keys",
+          "configuration": "Run as a pre-commit hook and in CI/CD pipeline."
+        },
+        "Detect-secrets": {
+          "description": "Detect high entropy strings in source code",
+          "configuration": "Use for detecting secrets in source code repositories."
+        },
+        "git-secrets": {
+          "description": "Prevents committing secrets and credentials to git repositories",
+          "configuration": "Configure as pre-commit hook."
+        },
+        "Trufflehog": {
+          "description": "Find secrets in git repositories",
+          "configuration": "Detect API keys, passwords, tokens, and cryptographic keys."
+        }
+      },
+      "strategy": "Run GitLeaks as a pre-commit hook and in CI/CD pipeline. Configure to detect API keys, passwords, tokens, and cryptographic keys."
+    },
+    "dast": {
+      "tools": {
+        "OWASP ZAP": {
+          "description": "Web application security scanner",
+          "configuration": "Schedule weekly scans against development environments."
+        },
+        "Nuclei": {
+          "description": "Template-based vulnerability scanner",
+          "configuration": "Run with security templates for web applications."
+        },
+        "Nikto": {
+          "description": "Web server scanner",
+          "configuration": "Scan for dangerous files and outdated software."
+        },
+        "Skipfish": {
+          "description": "Active web application security reconnaissance tool",
+          "configuration": "Run automated security checks on web applications."
+        }
+      },
+      "strategy": "Schedule weekly OWASP ZAP scans against development environments. Run baseline scans for each deployment."
+    },
+    "license_compliance": {
+      "tools": {
+        "licensechecker": {
+          "description": "Scan for license information",
+          "configuration": "Run in CI/CD pipeline to check licenses."
+        },
+        "scancode-toolkit": {
+          "description": "Detect licenses and copyrights",
+          "configuration": "Use for comprehensive license scanning."
+        },
+        "License Finder": {
+          "description": "Find and manage dependency licenses",
+          "configuration": "Integrate with dependency management system."
+        },
+        "REUSE Tool": {
+          "description": "Make licensing easier",
+          "configuration": "Check compliance with REUSE Specification."
+        }
+      },
+      "policy": "Maintain a whitelist of approved licenses. Configure CI/CD pipeline to fail builds with unauthorized licenses."
+    },
+    "log_analysis": {
+      "tools": {
+        "ELK Stack (Basic)": {
+          "description": "Elasticsearch, Logstash, and Kibana for log analysis",
+          "configuration": "Set up centralized logging and analysis."
+        },
+        "Graylog": {
+          "description": "Log management platform",
+          "configuration": "Configure for log collection and analysis."
+        },
+        "Loki": {
+          "description": "Log aggregation system",
+          "configuration": "Use with Prometheus for log monitoring."
+        },
+        "OpenSearch": {
+          "description": "Open source search and analytics suite",
+          "configuration": "Set up for distributed log analysis."
+        }
+      }
+    },
+    "runtime_protection": {
+      "tools": {
+        "AppArmor": {
+          "description": "Linux security module",
+          "configuration": "Configure profiles for application confinement."
+        },
+        "SELinux": {
+          "description": "Security-Enhanced Linux",
+          "configuration": "Enforce mandatory access controls."
+        },
+        "Falco": {
+          "description": "Container runtime security",
+          "configuration": "Monitor container behavior and detect anomalies."
+        },
+        "seccomp": {
+          "description": "Secure computing mode",
+          "configuration": "Restrict system calls available to processes."
+        }
+      }
+    },
+    "priority_order": [
+      "Fix vulnerabilities with CVEs",
+      "Secret scanning integration",
+      "SAST integration",
+      "Dependency scanning",
+      "Automated dependency updates",
+      "Static code analysis",
+      "Cyclomatic complexity analysis"
+    ]
+  }
+}

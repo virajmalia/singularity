@@ -41,24 +41,27 @@ private:
 
 /**
  * @brief Factory for creating repository analyzers
+ *
+ * The factory provides methods to create analyzers for different
+ * repository hosting services. Currently, only GitHub is implemented,
+ * but the design allows for extending to support other hosting services.
  */
 class RepoAnalyzerFactory {
 public:
     /**
-     * @brief Create an analyzer for a local git repository
-     * @param path Path to the local repository
-     * @return RepoAnalyzer instance
-     */
-    static std::unique_ptr<RepoAnalyzer> create_local_analyzer(const std::string& path);
-
-    /**
-     * @brief Create an analyzer for a remote git repository
+     * @brief Create an appropriate analyzer for a remote repository
      * @param url URL of the remote repository
-     * @param use_api Whether to use GitHub API (if applicable)
      * @return RepoAnalyzer instance
+     * @throws std::runtime_error if URL format is not supported
+     *
+     * This factory method examines the URL and creates the appropriate
+     * analyzer based on the repository hosting service.
+     *
+     * Currently supported:
+     * - GitHub repositories
      */
-    static std::unique_ptr<RepoAnalyzer> create_remote_analyzer(
-        const std::string& url, bool use_api = true);
+    static std::unique_ptr<RepoAnalyzer> create_analyzer(
+        const std::string& url);
 };
 
 } // namespace singularity
