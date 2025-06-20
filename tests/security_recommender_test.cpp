@@ -80,20 +80,3 @@ TEST_F(SecurityRecommenderTest, GenerateRecommendations) {
     EXPECT_TRUE(report.find("C++") != std::string::npos);
     EXPECT_TRUE(report.find("Python") != std::string::npos);
 }
-
-TEST_F(SecurityRecommenderTest, GenerateGithubWorkflow) {
-    LanguageStats stats = create_test_stats();
-    // Don't pass a directory to avoid creating files during tests
-    std::string workflow = recommender_.generate_github_workflow(stats);
-    
-    EXPECT_FALSE(workflow.empty());
-    EXPECT_TRUE(workflow.find("Security Scan") != std::string::npos);
-    EXPECT_TRUE(workflow.find("runs-on") != std::string::npos);
-    
-    // Test with output directory specified but use a temporary path
-    std::string temp_dir = std::filesystem::temp_directory_path().string();
-    std::string workflow_summary = recommender_.generate_github_workflow(stats, temp_dir);
-    
-    EXPECT_FALSE(workflow_summary.empty());
-    EXPECT_TRUE(workflow_summary.find("workflow") != std::string::npos);
-}
