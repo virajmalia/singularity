@@ -4,6 +4,7 @@ add_library(singularity_lib
     analyzers.cpp
     application.cpp
     security_recommender.cpp
+    workflow_generator.cpp
 )
 
 target_include_directories(singularity_lib 
