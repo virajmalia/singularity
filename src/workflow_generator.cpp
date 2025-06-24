@@ -105,6 +105,11 @@ bool WorkflowGenerator::generate_workflows(const LanguageStats& stats, const std
                 continue;
             }
 
+            if (scan_type == "cve_scanning"){
+                //generate_dependabot_workflow(languages, output_dir);
+                continue;
+            }
+
             // Generate workflow file for this scan type
             if (!generate_megalinter_workflow(scan_type, languages, output_dir)) {
                 std::cerr << "Failed to generate workflow for scan type: " << scan_type << std::endl;
@@ -154,7 +159,7 @@ bool WorkflowGenerator::generate_megalinter_workflow(
     workflow_file << "    steps:\n";
     workflow_file << "      # Checkout code\n";
     workflow_file << "      - name: Checkout Code\n";
-    workflow_file << "        uses: actions/checkout@v3\n";
+    workflow_file << "        uses: actions/checkout@v4\n";
     workflow_file << "        with:\n";
     workflow_file << "          fetch-depth: 0\n\n";
     workflow_file << "      # MegaLinter\n";
@@ -422,7 +427,7 @@ void WorkflowGenerator::add_tool_configs(
                         } else if (tool_name == "clang-tidy") {
                             args = "\"-checks=clang-analyzer-security.*,cert-*\"";
                         } else if (tool_name == "Cppcheck") {
-                            args = "\"--enable=all --inconclusive\"";
+                            args = "\"--enable=all --inconclusive --suppress=missingIncludeSystem\"";
                         } else if (tool_name == "Semgrep") {
                             args = "\"--config=p/security-audit\"";
                         } else if (tool_name == "Trivy") {
@@ -533,7 +538,7 @@ bool WorkflowGenerator::generate_lizard_workflow(
     workflow_file << "    steps:\n";
     workflow_file << "      # Checkout code\n";
     workflow_file << "      - name: Checkout Code\n";
-    workflow_file << "        uses: actions/checkout@v3\n";
+    workflow_file << "        uses: actions/checkout@v4\n";
     workflow_file << "        with:\n";
     workflow_file << "          fetch-depth: 0\n\n";
 
@@ -580,7 +585,7 @@ bool WorkflowGenerator::generate_lizard_workflow(
     workflow_file << "        run: |\n";
     workflow_file << "          mkdir -p lizard-reports\n";
     workflow_file << "          echo \"Using complexity threshold: ${{ env.COMPLEXITY_THRESHOLD }}\"\n";
-    workflow_file << "          lizard --CCN ${{ env.COMPLEXITY_THRESHOLD }} " << ext_args << " --warnings_only > lizard-reports/complexity_report.txt\n";
+    workflow_file << "          python -m lizard --CCN ${{ env.COMPLEXITY_THRESHOLD }} " << ext_args << " --warnings_only > lizard-reports/complexity_report.txt\n";
     workflow_file << "          echo \"Complexity issues found:\" $(grep -c \"has \\d\\+\" lizard-reports/complexity_report.txt || echo \"0\")\n\n";
 
     // Upload Lizard reports as artifacts
