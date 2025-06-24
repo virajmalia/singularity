@@ -38,7 +38,7 @@ jobs:
 
       # Install Lizard
       - name: Install Lizard
-        run: pip install lizard
+        run: git clone --branch 1.17.31 https://github.com/terryyin/lizard.git
 
       # Set complexity threshold
       - name: Set complexity threshold
@@ -54,7 +54,7 @@ jobs:
         run: |
           mkdir -p lizard-reports
           echo "Using complexity threshold: ${{ env.COMPLEXITY_THRESHOLD }}"
-          python -m lizard --CCN ${{ env.COMPLEXITY_THRESHOLD }} --extension .cpp --extension .cc --extension .cxx --extension .h --extension .hpp --extension .hxx --extension .py --warnings_only > lizard-reports/complexity_report.txt
+          python lizard/lizard.py --CCN ${{ env.COMPLEXITY_THRESHOLD }} --extension .cpp --extension .cc --extension .cxx --extension .h --extension .hpp --extension .hxx --extension .py --warnings_only > lizard-reports/complexity_report.txt
           echo "Complexity issues found:" $(grep -c "has \d\+" lizard-reports/complexity_report.txt || echo "0")
 
       # Upload Lizard reports
