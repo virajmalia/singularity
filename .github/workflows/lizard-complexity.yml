@@ -1,0 +1,77 @@
+---
+# Lizard code complexity analysis workflow
+name: Lizard Code Complexity Analysis
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    # Allows manual triggering from GitHub UI
+    inputs:
+      complexity_threshold:
+        description: 'Complexity threshold (default: 15)'
+        required: false
+        default: '15'
+        type: string
+  schedule:
+    # Run once per week on Sunday at 00:00 UTC
+    - cron: '0 0 * * 0'
+
+jobs:
+  lizard-analysis:
+    name: Lizard Code Complexity Analysis
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      # Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # Install Lizard
+      - name: Install Lizard
+        run: pip install lizard
+
+      # Set complexity threshold
+      - name: Set complexity threshold
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.complexity_threshold }}" != "" ]]; then
+            echo "COMPLEXITY_THRESHOLD=${{ github.event.inputs.complexity_threshold }}" >> $GITHUB_ENV
+          else
+            echo "COMPLEXITY_THRESHOLD=15" >> $GITHUB_ENV
+          fi
+
+      # Run Lizard analysis with text output
+      - name: Run Lizard Analysis (Text output)
+        run: |
+          mkdir -p lizard-reports
+          echo "Using complexity threshold: ${{ env.COMPLEXITY_THRESHOLD }}"
+          lizard --CCN ${{ env.COMPLEXITY_THRESHOLD }} --extension .cpp --extension .cc --extension .cxx --extension .h --extension .hpp --extension .hxx --extension .py --warnings_only > lizard-reports/complexity_report.txt
+          echo "Complexity issues found:" $(grep -c "has \d\+" lizard-reports/complexity_report.txt || echo "0")
+
+      # Upload Lizard reports
+      - name: Upload Lizard reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: Lizard Complexity Reports
+          path: lizard-reports/
+
+      # Check if complexity thresholds were exceeded
+      - name: Check complexity issues
+        run: |
+          if [[ $(grep -c "has \d\+" lizard-reports/complexity_report.txt || echo "0") -gt 0 ]]; then
+            echo "::warning::Found functions exceeding cyclomatic complexity threshold of ${{ env.COMPLEXITY_THRESHOLD }}"
+            cat lizard-reports/complexity_report.txt
+            # Uncomment the next line to fail the build on complexity issues
+            # exit 1
+          else
+            echo "No complexity issues found."
+          fi
