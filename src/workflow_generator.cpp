@@ -206,7 +206,7 @@ bool WorkflowGenerator::generate_megalinter_workflow(
     workflow_file << "\n";
     workflow_file << "      # Upload MegaLinter artifacts\n";
     workflow_file << "      - name: Archive production artifacts\n";
-    workflow_file << "        uses: actions/upload-artifact@v3\n";
+    workflow_file << "        uses: actions/upload-artifact@v4\n";
     workflow_file << "        if: success() || failure()\n";
     workflow_file << "        with:\n";
     workflow_file << "          name: MegaLinter reports\n";
@@ -586,7 +586,7 @@ bool WorkflowGenerator::generate_lizard_workflow(
     // Upload Lizard reports as artifacts
     workflow_file << "      # Upload Lizard reports\n";
     workflow_file << "      - name: Upload Lizard reports\n";
-    workflow_file << "        uses: actions/upload-artifact@v3\n";
+    workflow_file << "        uses: actions/upload-artifact@v4\n";
     workflow_file << "        with:\n";
     workflow_file << "          name: Lizard Complexity Reports\n";
     workflow_file << "          path: lizard-reports/\n\n";
