@@ -149,7 +149,7 @@ private:
         {"clang-tidy", "CPP_CLANG_TIDY_ARGUMENTS: \"-checks=clang-analyzer-security.*,cert-*\""},
         {"Bandit", "PYTHON_BANDIT_ARGUMENTS: \"-ll -ii\""},
         {"Pylint", "PYTHON_PYLINT_ARGUMENTS: \"--max-line-length=100\""},
-        {"Semgrep", "REPOSITORY_SEMGREP_ARGUMENTS: \"--config=p/security-audit\""}
+        {"Semgrep", "REPOSITORY_SEMGREP_ARGUMENTS: \"--config=p/security-audit\"\n          REPOSITORY_SEMGREP_RULESETS_TYPE: security"}
     };
 };
 

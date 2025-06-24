@@ -509,7 +509,7 @@ bool WorkflowGenerator::generate_lizard_workflow(
 
     workflow_file << "      # Install Lizard\n";
     workflow_file << "      - name: Install Lizard\n";
-    workflow_file << "        run: pip install lizard\n\n";
+    workflow_file << "        run: git clone --branch 1.17.31 https://github.com/terryyin/lizard.git\n\n";
 
     // Prepare the file extensions for lizard command
     std::string ext_args = "";
@@ -544,7 +544,7 @@ bool WorkflowGenerator::generate_lizard_workflow(
     workflow_file << "        run: |\n";
     workflow_file << "          mkdir -p lizard-reports\n";
     workflow_file << "          echo \"Using complexity threshold: ${{ env.COMPLEXITY_THRESHOLD }}\"\n";
-    workflow_file << "          python -m lizard --CCN ${{ env.COMPLEXITY_THRESHOLD }} " << ext_args << " --warnings_only > lizard-reports/complexity_report.txt\n";
+    workflow_file << "          python lizard/lizard.py --CCN ${{ env.COMPLEXITY_THRESHOLD }} " << ext_args << " --warnings_only > lizard-reports/complexity_report.txt\n";
     workflow_file << "          echo \"Complexity issues found:\" $(grep -c \"has \\d\\+\" lizard-reports/complexity_report.txt || echo \"0\")\n\n";
 
     // Upload Lizard reports as artifacts
