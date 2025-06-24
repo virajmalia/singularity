@@ -32,7 +32,6 @@ jobs:
 
           # Tool-specific configurations
           REPOSITORY_SEMGREP_ARGUMENTS: "--config=p/security-audit"
-          REPOSITORY_SEMGREP_ARGUMENTS: "--config=p/security-audit"
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts
