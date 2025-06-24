@@ -26,7 +26,7 @@ jobs:
     steps:
       # Checkout code
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -54,7 +54,7 @@ jobs:
         run: |
           mkdir -p lizard-reports
           echo "Using complexity threshold: ${{ env.COMPLEXITY_THRESHOLD }}"
-          lizard --CCN ${{ env.COMPLEXITY_THRESHOLD }} --extension .cpp --extension .cc --extension .cxx --extension .h --extension .hpp --extension .hxx --extension .py --warnings_only > lizard-reports/complexity_report.txt
+          python -m lizard --CCN ${{ env.COMPLEXITY_THRESHOLD }} --extension .cpp --extension .cc --extension .cxx --extension .h --extension .hpp --extension .hxx --extension .py --warnings_only > lizard-reports/complexity_report.txt
           echo "Complexity issues found:" $(grep -c "has \d\+" lizard-reports/complexity_report.txt || echo "0")
 
       # Upload Lizard reports
