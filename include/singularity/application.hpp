@@ -76,6 +76,13 @@ private:
     bool generate_security_report(const LanguageStats& stats);
 
     /**
+     * @brief Generate workflow templates for the repository
+     * @param stats Language statistics from analysis
+     * @return True if workflow generation successful
+     */
+    bool generate_workflow_templates(const LanguageStats& stats);
+
+    /**
      * @brief Progress callback function
      * @param percentage Progress percentage (0-100)
      * @param message Status message
@@ -85,7 +92,9 @@ private:
     std::string repo_url_;
     bool verbose_{false};
     bool generate_report_{false};
+    bool generate_workflows_{false};
     std::string output_file_;
+    std::string output_dir_;
 };
 
 } // namespace singularity
