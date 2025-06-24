@@ -54,7 +54,7 @@ jobs:
         run: |
           mkdir -p lizard-reports
           echo "Using complexity threshold: ${{ env.COMPLEXITY_THRESHOLD }}"
-          lizard --CCN ${{ env.COMPLEXITY_THRESHOLD }} > lizard-reports/complexity_report.txt
+          lizard --CCN ${{ env.COMPLEXITY_THRESHOLD }} -o lizard-reports/complexity_report.txt
           echo "Complexity issues found:" $(grep -c "has \d\+" lizard-reports/complexity_report.txt || echo "0")
 
       # Upload Lizard reports
