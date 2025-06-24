@@ -90,7 +90,6 @@ bool WorkflowGenerator::generate_workflows(const LanguageStats& stats, const std
         // Create output directory if it doesn't exist
         fs::create_directories(output_dir);
         fs::create_directories(output_dir + "/workflows");
-        fs::create_directories(output_dir + "/config");
 
         // Get all detected languages
         std::vector<std::string> languages = stats.get_languages();
@@ -165,7 +164,6 @@ bool WorkflowGenerator::generate_megalinter_workflow(
     workflow_file << "        env:\n";
     workflow_file << "          VALIDATE_ALL_CODEBASE: true\n";
     workflow_file << "          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n";
-    workflow_file << "          MEGALINTER_CONFIG: .github/config/.mega-linter.yml\n";
 
     // Add comment about dynamic language detection
     workflow_file << "          # Dynamically enable linters based on detected languages: ";
@@ -456,8 +454,6 @@ void WorkflowGenerator::add_tool_configs(
                             args = "\"--enable=all --inconclusive\"";
                         } else if (tool_name == "Semgrep") {
                             args = "\"--config=p/security-audit\"";
-                        } else if (tool_name == "GitLeaks") {
-                            args = "\"--config-path=.github/config/gitleaks.toml\"";
                         } else if (tool_name == "Trivy") {
                             args = "\"--severity HIGH,CRITICAL\"";
                         } else {
