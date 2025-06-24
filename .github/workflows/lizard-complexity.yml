@@ -59,7 +59,7 @@ jobs:
 
       # Upload Lizard reports
       - name: Upload Lizard reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Lizard Complexity Reports
           path: lizard-reports/
