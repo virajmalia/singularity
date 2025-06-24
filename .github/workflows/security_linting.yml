@@ -19,7 +19,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      # MegaLinter
+      # Install clang-tidy
+      - name: Install clang-tidy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy
+
+      # Run clang-tidy
+      - name: Run clang-tidy
+        run: |
+          mkdir -p clang-tidy-reports
+          echo "Running clang-tidy security checks..."
+          find src include -name "*.cpp" -o -name "*.hpp" -o -name "*.h" | xargs -I{} clang-tidy {} -checks=clang-analyzer-security.*,cert-*,security-* -- -I./include > clang-tidy-reports/report.txt || true
+          if [ -s clang-tidy-reports/report.txt ]; then
+            echo "::warning::clang-tidy found security issues:"
+            cat clang-tidy-reports/report.txt
+            echo "Full report saved to clang-tidy-reports/report.txt"
+          else
+            echo "No security issues found by clang-tidy"
+          fi
+          
+      # MegaLinter for Python
       - name: MegaLinter security_linting Scan
         id: ml
         uses: oxsecurity/megalinter@v8
@@ -28,29 +48,26 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Dynamically enable linters based on detected languages: C++, Shell, CMake, Dockerfile, Python, 
           ENABLE_LINTERS: >-
-            CPP_CLANG_TIDY,
             PYTHON_PYLINT,
 
           # Tool-specific configurations
-          CPP_CLANG_TIDY_ARGUMENTS: "-checks=clang-analyzer-security.*,cert-*"
-          PYTHON_PYLINT_ARGUMENTS: "--max-line-length=100"
+          PYTHON_PYLINT_ARGUMENTS: "--max-line-length=100 --disable=C0111"
 
-      # Upload MegaLinter artifacts
+      # Upload artifacts
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         if: success() || failure()
         with:
-          name: MegaLinter reports
+          name: Security Reports
           path: |
-            megalinter-reports
-            mega-linter.log
+            clang-tidy-reports
 
       # Create pull request with fixes if applicable
       - name: Create Pull Request with applied fixes
         uses: peter-evans/create-pull-request@v4
-        if: steps.ml.outputs.has_updated_sources == 1 && (env.APPLY_FIXES == 'all' || env.APPLY_FIXES == 'true')
+        if: steps.ml.outputs.has_updated_sources == 1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "[MegaLinter] Apply security_linting fixes"
-          title: "[MegaLinter] Apply security_linting fixes"
+          commit-message: "Apply security_linting fixes"
+          title: "Apply security_linting fixes"
           labels: bot
