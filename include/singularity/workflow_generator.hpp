@@ -55,7 +55,7 @@ private:
      * @return True if generation successful
      */
     bool generate_megalinter_workflow(
-        const std::string& scan_type, 
+        const std::string& scan_type,
         const std::vector<std::string>& languages,
         const std::string& output_dir);
 
@@ -66,6 +66,16 @@ private:
      * @return True if generation successful
      */
     bool generate_megalinter_config(
+        const std::vector<std::string>& languages,
+        const std::string& output_dir);
+
+    /**
+     * @brief Generate a GitHub Actions workflow file for Lizard complexity analysis
+     * @param languages Vector of languages to analyze
+     * @param output_dir Directory where workflow file should be written
+     * @return True if generation successful
+     */
+    bool generate_lizard_workflow(
         const std::vector<std::string>& languages,
         const std::string& output_dir);
 
@@ -90,9 +100,9 @@ private:
      * @return Vector of linter names
      */
     std::vector<std::string> get_linters_for_language(
-        const std::string& language, 
+        const std::string& language,
         const std::string& scan_type);
-        
+
     /**
      * @brief Get generic MegaLinter linters for a scan type (regardless of language)
      * @param scan_type The scan type
@@ -100,7 +110,7 @@ private:
      */
     std::vector<std::string> get_generic_linters_for_scan_type(
         const std::string& scan_type);
-        
+
     /**
      * @brief Add tool-specific configurations to the workflow file
      * @param workflow_file Output stream for the workflow file

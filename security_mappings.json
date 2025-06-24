@@ -79,7 +79,7 @@
           "supported_languages": ["Python"],
           "configuration": "Scan for common security issues in Python code."
         },
-        "Pylint security plugins": {
+        "Pylint": {
           "supported_languages": ["Python"],
           "configuration": "Enable all security plugins in Pylint.",
           "default_for_language": true
