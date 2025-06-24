@@ -249,35 +249,6 @@ std::string WorkflowGenerator::map_to_megalinter_group(const std::string& scan_t
     return "";
 }
 
-std::string WorkflowGenerator::map_language_to_megalinter(const std::string& language) {
-    // Map language names to MegaLinter language identifiers
-    static const std::unordered_map<std::string, std::string> lang_map = {
-        {"C", "C"},
-        {"C++", "CPP"},
-        {"Python", "PYTHON"},
-        {"JavaScript", "JAVASCRIPT"},
-        {"TypeScript", "TYPESCRIPT"},
-        {"Java", "JAVA"},
-        {"Go", "GO"},
-        {"Ruby", "RUBY"},
-        {"PHP", "PHP"},
-        {"C#", "CSHARP"},
-        {"Shell", "BASH"},
-        {"PowerShell", "POWERSHELL"},
-        {"R", "R"},
-        {"Kotlin", "KOTLIN"},
-        {"Swift", "SWIFT"}
-    };
-
-    auto it = lang_map.find(language);
-    if (it != lang_map.end()) {
-        return it->second;
-    }
-
-    // Default to empty if no mapping found
-    return "";
-}
-
 std::vector<std::string> WorkflowGenerator::get_linters_for_language(
     const std::string& language,
     const std::string& scan_type) {

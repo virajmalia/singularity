@@ -87,13 +87,6 @@ private:
     std::string map_to_megalinter_group(const std::string& scan_type);
 
     /**
-     * @brief Map language name to MegaLinter language format
-     * @param language The language name (e.g., "C++")
-     * @return Language name in MegaLinter format (e.g., "cpp")
-     */
-    std::string map_language_to_megalinter(const std::string& language);
-
-    /**
      * @brief Get appropriate MegaLinter linters for a language and scan type
      * @param language The language name
      * @param scan_type The scan type
