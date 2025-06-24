@@ -355,25 +355,6 @@ void WorkflowGenerator::add_tool_configs(
     const std::string& language,
     const std::string& scan_type) {
 
-    // Map tool names to MegaLinter linter config argument names
-    static const std::unordered_map<std::string, std::string> tool_to_config = {
-        {"Cppcheck", "CPP_CPPCHECK_ARGUMENTS"},
-        {"CppLint", "CPP_CPPLINT_ARGUMENTS"},
-        {"clang-tidy", "CPP_CLANG_TIDY_ARGUMENTS"},
-        {"Clang Static Analyzer", "CPP_CLANG_TIDY_ARGUMENTS"},
-        {"FlawFinder", "CPP_FLAWFINDER_ARGUMENTS"},
-        {"Bandit", "PYTHON_BANDIT_ARGUMENTS"},
-        {"Pylint", "PYTHON_PYLINT_ARGUMENTS"},
-        {"Black", "PYTHON_BLACK_ARGUMENTS"},
-        {"Safety", "PYTHON_SAFETY_ARGUMENTS"},
-        {"GitLeaks", "REPOSITORY_GITLEAKS_ARGUMENTS"},
-        {"Detect-secrets", "REPOSITORY_SECRETLINT_ARGUMENTS"},
-        {"Semgrep", "REPOSITORY_SEMGREP_ARGUMENTS"},
-        {"CodeQL", "REPOSITORY_CODEQL_ARGUMENTS"},
-        {"OWASP Dependency-Check", "REPOSITORY_DEPENDENCY_CHECK_ARGUMENTS"},
-        {"Trivy", "REPOSITORY_TRIVY_ARGUMENTS"}
-    };
-
     // Check if the scan_type exists in the security mappings
     if (!security_mappings_["scan_types"].contains(scan_type)) {
         return; // No configuration available
@@ -413,30 +394,8 @@ void WorkflowGenerator::add_tool_configs(
                 if (is_default) {
                     auto it = tool_to_config.find(tool_name);
                     if (it != tool_to_config.end()) {
-                        // Extract the configuration string
-                        const std::string& config_str = tool_info["configuration"].get<std::string>();
-
-                        // Generate a sensible argument string based on the configuration text
-                        std::string args;
-                        if (tool_name == "Bandit") {
-                            args = "\"-ll -ii\"";
-                        } else if (tool_name == "Pylint") {
-                            args = "\"--max-line-length=100\"";
-                        } else if (tool_name == "Black") {
-                            args = "\"--line-length=100\"";
-                        } else if (tool_name == "clang-tidy") {
-                            args = "\"-checks=clang-analyzer-security.*,cert-*\"";
-                        } else if (tool_name == "Cppcheck") {
-                            args = "\"--enable=all --inconclusive --suppress=missingIncludeSystem\"";
-                        } else if (tool_name == "Semgrep") {
-                            args = "\"--config=p/security-audit\"";
-                        } else if (tool_name == "Trivy") {
-                            args = "\"--severity HIGH,CRITICAL\"";
-                        } else {
-                            args = "\"\""; // Default to empty arguments
-                        }
-
-                        workflow_file << "          " << it->second << ": " << args << "\n";
+                        workflow_file << "          " << it->second << "\n";
+                        tool_to_config.erase(it); // Remove to avoid duplicates
                     }
                 }
             }

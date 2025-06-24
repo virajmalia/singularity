@@ -142,6 +142,15 @@ private:
         {"REUSE Tool", "REPOSITORY_REUSE"},
         {"Trivy", "REPOSITORY_TRIVY"}
     };
+
+    // Map tool names to MegaLinter linter config argument names
+    std::unordered_map<std::string, std::string> tool_to_config = {
+        {"Cppcheck", "CPP_CPPCHECK_ARGUMENTS: \"--enable=all --inconclusive --suppress=missingIncludeSystem\""},
+        {"clang-tidy", "CPP_CLANG_TIDY_ARGUMENTS: \"-checks=clang-analyzer-security.*,cert-*\""},
+        {"Bandit", "PYTHON_BANDIT_ARGUMENTS: \"-ll -ii\""},
+        {"Pylint", "PYTHON_PYLINT_ARGUMENTS: \"--max-line-length=100\""},
+        {"Semgrep", "REPOSITORY_SEMGREP_ARGUMENTS: \"--config=p/security-audit\""}
+    };
 };
 
 } // namespace singularity
