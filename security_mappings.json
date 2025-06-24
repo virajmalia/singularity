@@ -8,11 +8,13 @@
         },
         "Cppcheck": {
           "supported_languages": ["C", "C++"],
-          "configuration": "Enable all checks with focus on security-related issues."
+          "configuration": "Enable all checks with focus on security-related issues.",
+          "default_for_language": true
         },
         "Bandit": {
           "supported_languages": ["Python"],
-          "configuration": "Focus on input validation, SQL injection, and command injection vulnerabilities."
+          "configuration": "Focus on input validation, SQL injection, and command injection vulnerabilities.",
+          "default_for_language": true
         },
         "Pylint": {
           "supported_languages": ["Python"],
@@ -36,7 +38,8 @@
         },
         "Dependabot": {
           "supported_languages": ["C", "C++", "Python"],
-          "configuration": "Configure with security advisories and version updates for all supported package ecosystems."
+          "configuration": "Configure with security advisories and version updates for all supported package ecosystems.",
+          "default_for_language": true
         }
       }
     },
@@ -48,7 +51,8 @@
         },
         "Semgrep": {
           "supported_languages": ["C", "C++", "Python"],
-          "configuration": "Use language-specific rule sets to detect security issues."
+          "configuration": "Use language-specific rule sets to detect security issues.",
+          "default_for_language": true
         },
         "Fortify": {
           "supported_languages": ["C", "C++", "Python"],
@@ -64,7 +68,8 @@
         },
         "clang-tidy": {
           "supported_languages": ["C", "C++"],
-          "configuration": "Configure with -checks=bugprone-*,cert-*,clang-analyzer-security.*,performance-*"
+          "configuration": "Configure with -checks=bugprone-*,cert-*,clang-analyzer-security.*,performance-*",
+          "default_for_language": true
         },
         "CppLint": {
           "supported_languages": ["C++"],
@@ -74,18 +79,15 @@
           "supported_languages": ["Python"],
           "configuration": "Scan for common security issues in Python code."
         },
-        "Pylint security plugins": {
+        "Pylint": {
           "supported_languages": ["Python"],
-          "configuration": "Enable all security plugins in Pylint."
+          "configuration": "Enable all security plugins in Pylint.",
+          "default_for_language": true
         }
       }
     },
     "code_quality": {
       "tools": {
-        "Cppcheck": {
-          "supported_languages": ["C", "C++"],
-          "configuration": "Enable all checks with focus on code quality issues."
-        },
         "Radon": {
           "supported_languages": ["Python"],
           "configuration": "Compute code metrics and complexity."
@@ -96,7 +98,8 @@
         },
         "Lizard": {
           "supported_languages": ["C", "C++", "Python"],
-          "configuration": "Analyze cyclomatic complexity in code base. Configure to fail builds with high complexity scores."
+          "configuration": "Analyze cyclomatic complexity in code base. Configure to fail builds with high complexity scores.",
+          "default_for_language": true
         },
         "Complexity Checker": {
           "supported_languages": ["C", "C++"],

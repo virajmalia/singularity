@@ -1,0 +1,73 @@
+---
+# MegaLinter GitHub Actions workflow for security_linting scans
+name: MegaLinter security_linting
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  megalinter-security_linting:
+    name: MegaLinter security_linting Scan
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Install clang-tidy
+      - name: Install clang-tidy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy
+
+      # Run clang-tidy
+      - name: Run clang-tidy
+        run: |
+          mkdir -p clang-tidy-reports
+          echo "Running clang-tidy security checks..."
+          find src include -name "*.cpp" -o -name "*.hpp" -o -name "*.h" | xargs -I{} clang-tidy {} -checks=clang-analyzer-security.*,cert-*,security-* -- -I./include > clang-tidy-reports/report.txt || true
+          if [ -s clang-tidy-reports/report.txt ]; then
+            echo "::warning::clang-tidy found security issues:"
+            cat clang-tidy-reports/report.txt
+            echo "Full report saved to clang-tidy-reports/report.txt"
+          else
+            echo "No security issues found by clang-tidy"
+          fi
+          
+      # MegaLinter for Python
+      - name: MegaLinter security_linting Scan
+        id: ml
+        uses: oxsecurity/megalinter@v8
+        env:
+          VALIDATE_ALL_CODEBASE: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Dynamically enable linters based on detected languages: C++, Shell, CMake, Dockerfile, Python, 
+          ENABLE_LINTERS: >-
+            PYTHON_PYLINT,
+
+          # Tool-specific configurations
+          PYTHON_PYLINT_ARGUMENTS: "--max-line-length=100 --disable=C0111"
+
+      # Upload artifacts
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: Security Reports
+          path: |
+            clang-tidy-reports
+
+      # Create pull request with fixes if applicable
+      - name: Create Pull Request with applied fixes
+        uses: peter-evans/create-pull-request@v4
+        if: steps.ml.outputs.has_updated_sources == 1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Apply security_linting fixes"
+          title: "Apply security_linting fixes"
+          labels: bot

@@ -1,6 +1,7 @@
 #include "singularity/application.hpp"
 #include "singularity/repo_analyzer.hpp"
 #include "singularity/security_recommender.hpp"
+#include "singularity/workflow_generator.hpp"
 #include <cstdlib>  // For std::exit
 #include <iostream>
 #include <fstream>
@@ -78,6 +79,16 @@ bool Application::parse_args(int argc, char** argv) {
             else if (arg == "--verbose") {
                 verbose_ = true;
             }
+            else if (arg == "--workflows") {
+                generate_workflows_ = true;
+
+                // Check if the next argument is an output directory path
+                if (i + 1 < argc && argv[i+1][0] != '-') {
+                    output_dir_ = argv[++i];
+                } else {
+                    output_dir_ = "output";  // Default output directory
+                }
+            }
             else {
                 std::cerr << "Error: Unknown argument: " << arg << std::endl;
                 print_usage();
@@ -108,7 +119,8 @@ void Application::print_usage() {
               << "  -v, --version           Show version and exit\n"
               << "  -r, --repo <url>        Repository URL to analyze (currently only GitHub URLs are supported)\n"
               << "  --verbose               Show verbose output\n"
-              << "  --security-report [file]   Generate a security report, optionally write to file\n";
+              << "  --security-report [file]   Generate a security report, optionally write to file\n"
+              << "  --workflows [dir]       Generate MegaLinter workflow templates in directory (default: output)\n";
 }
 
 void Application::print_version() {
@@ -149,6 +161,17 @@ bool Application::analyze_repo() {
         }
 
         if (!generate_security_report(stats)) {
+            return false;
+        }
+    }
+
+    // Generate workflow templates if requested
+    if (generate_workflows_) {
+        if (verbose_) {
+            std::cout << "Generating MegaLinter workflow templates...\n";
+        }
+
+        if (!generate_workflow_templates(stats)) {
             return false;
         }
     }
@@ -197,6 +220,35 @@ bool Application::generate_security_report(const LanguageStats& stats) {
         return true;
     } catch (const std::exception& e) {
         std::cerr << "Error generating security report: " << e.what() << std::endl;
+        return false;
+    }
+}
+
+bool Application::generate_workflow_templates(const LanguageStats& stats) {
+    try {
+        // Get singleton instance and initialize it
+        WorkflowGenerator& generator = WorkflowGenerator::instance();
+
+        if (!generator.is_initialized()) {
+            if (!generator.initialize()) {
+                std::cerr << "Error: Could not initialize workflow generator" << std::endl;
+                return false;
+            }
+        }
+
+        // Generate workflow files in the output directory
+        if (!generator.generate_workflows(stats, output_dir_)) {
+            std::cerr << "Error: Could not generate workflow templates" << std::endl;
+            return false;
+        }
+
+        if (verbose_) {
+            std::cout << "Workflow templates generated in directory: " << output_dir_ << std::endl;
+        }
+
+        return true;
+    } catch (const std::exception& e) {
+        std::cerr << "Error generating workflow templates: " << e.what() << std::endl;
         return false;
     }
 }
